@@ -23,15 +23,9 @@ const EPISODE_CATEGORIES: Category[] = ["TV Show", "Podcast"];
 interface Suggestion {
   title: string;
   creator: string;
-  image?: string;
+  subtitle?: string;
+  image?: string | null;
 }
-
-type ItunesItem = {
-  trackName?: string;
-  collectionName?: string;
-  artistName?: string;
-  artworkUrl100?: string;
-};
 
 async function fetchSuggestions(
   query: string,
@@ -41,111 +35,14 @@ async function fetchSuggestions(
 ): Promise<Suggestion[]> {
   if (query.length < 2 || !SEARCHABLE.includes(category)) return [];
   try {
-    if (category === "Book") {
-      const res = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=title,author_name,cover_i`
-      );
-      const data = await res.json();
-      return (data.docs as { title: string; author_name?: string[]; cover_i?: number }[])
-        .slice(0, 6)
-        .map((d) => ({
-          title: d.title,
-          creator: d.author_name?.[0] ?? "",
-          image: d.cover_i
-            ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg`
-            : undefined,
-        }));
-    }
-
-    if (category === "Movie") {
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=movie&limit=6`
-      );
-      const data = await res.json();
-      return data.results.map((d: ItunesItem) => ({
-        title: d.trackName ?? "",
-        creator: d.artistName ?? "",
-        image: d.artworkUrl100,
-      }));
-    }
-
-    if (category === "TV Show") {
-      if (episodeMode) {
-        const term = showName ? `${showName} ${query}` : query;
-        const res = await fetch(
-          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=tvShow&entity=tvEpisode&limit=10`
-        );
-        const data = await res.json();
-        return (data.results as ItunesItem[])
-          .filter((d) => d.trackName)
-          .slice(0, 6)
-          .map((d) => ({
-            title: d.trackName!,
-            creator: d.collectionName ?? "",
-            image: d.artworkUrl100,
-          }));
-      }
-
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=tvShow&entity=tvSeason&limit=12`
-      );
-      const data = await res.json();
-      const seen = new Set<string>();
-      const results: Suggestion[] = [];
-      for (const d of data.results as ItunesItem[]) {
-        const name = d.collectionName ?? d.trackName ?? "";
-        if (name && !seen.has(name)) {
-          seen.add(name);
-          results.push({ title: name, creator: d.artistName ?? "", image: d.artworkUrl100 });
-        }
-        if (results.length >= 6) break;
-      }
-      return results;
-    }
-
-    if (category === "Podcast") {
-      if (episodeMode) {
-        const term = showName ? `${showName} ${query}` : query;
-        const res = await fetch(
-          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&entity=podcastEpisode&limit=10`
-        );
-        const data = await res.json();
-        return (data.results as ItunesItem[])
-          .filter((d) => d.trackName)
-          .slice(0, 6)
-          .map((d) => ({
-            title: d.trackName!,
-            creator: d.collectionName ?? "",
-            image: d.artworkUrl100,
-          }));
-      }
-
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=podcast&limit=6`
-      );
-      const data = await res.json();
-      return (data.results as ItunesItem[]).map((d) => ({
-        title: d.collectionName ?? d.trackName ?? "",
-        creator: d.artistName ?? "",
-        image: d.artworkUrl100,
-      }));
-    }
-
-    if (category === "Album") {
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=6`
-      );
-      const data = await res.json();
-      return (data.results as ItunesItem[]).map((d) => ({
-        title: d.collectionName ?? "",
-        creator: d.artistName ?? "",
-        image: d.artworkUrl100,
-      }));
-    }
+    const params = new URLSearchParams({ q: query, category });
+    if (episodeMode) params.set("episode", "1");
+    if (showName) params.set("showName", showName);
+    const res = await fetch(`/api/search?${params}`);
+    return await res.json();
   } catch {
-    // silently ignore network errors
+    return [];
   }
-  return [];
 }
 
 interface Props {
@@ -373,8 +270,10 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
                       )}
                       <div className="min-w-0">
                         <div className="font-medium text-gray-900 truncate">{s.title}</div>
-                        {s.creator && (
-                          <div className="text-gray-400 text-xs truncate">{s.creator}</div>
+                        {(s.subtitle || s.creator) && (
+                          <div className="text-gray-400 text-xs truncate">
+                            {s.subtitle ?? s.creator}
+                          </div>
                         )}
                       </div>
                     </button>
