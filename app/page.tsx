@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar } from "lucide-react";
+import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar, ChevronsUpDown } from "lucide-react";
 import EntryForm from "@/components/EntryForm";
 import type { Entry, Category } from "@/types";
 
@@ -144,25 +144,31 @@ export default function HomePage() {
     <>
       {/* Year / Month header */}
       <div className="flex items-center gap-3 mb-6">
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="text-3xl font-bold text-indigo-600 bg-transparent border-none outline-none cursor-pointer appearance-auto"
-        >
-          {yearOptions.map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-        <select
-          value={month ?? ""}
-          onChange={(e) => setMonth(e.target.value === "" ? null : Number(e.target.value))}
-          className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer appearance-auto"
-        >
-          <option value="">Full year</option>
-          {MONTH_NAMES.map((name, i) => (
-            <option key={i} value={i + 1}>{name}</option>
-          ))}
-        </select>
+        <label className="inline-flex items-center gap-0.5 cursor-pointer">
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="text-3xl font-bold text-indigo-600 bg-transparent border-none outline-none cursor-pointer appearance-none p-0"
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <ChevronsUpDown size={14} className="text-indigo-400 shrink-0" />
+        </label>
+        <label className="inline-flex items-center gap-0.5 cursor-pointer">
+          <select
+            value={month ?? ""}
+            onChange={(e) => setMonth(e.target.value === "" ? null : Number(e.target.value))}
+            className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer appearance-none p-0"
+          >
+            <option value="">Full year</option>
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i} value={i + 1}>{name}</option>
+            ))}
+          </select>
+          <ChevronsUpDown size={14} className="text-gray-400 shrink-0" />
+        </label>
       </div>
 
       {/* Category count pills */}

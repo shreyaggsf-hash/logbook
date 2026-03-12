@@ -52,10 +52,13 @@ function getNumber(page: PageObjectResponse, prop: string): number | null {
 }
 
 function getCoverImage(page: PageObjectResponse): string | null {
-  if (!page.cover) return null;
-  if (page.cover.type === "external") return page.cover.external.url;
-  if (page.cover.type === "file") return page.cover.file.url;
-  return null;
+  let url: string | null = null;
+  if (page.cover?.type === "external") url = page.cover.external.url;
+  else if (page.cover?.type === "file") url = page.cover.file.url;
+  if (!url) return null;
+  // Upgrade any old low-res OpenLibrary covers to large
+  url = url.replace(/(covers\.openlibrary\.org\/b\/id\/\d+)-[SM]\.jpg/, "$1-L.jpg");
+  return url;
 }
 
 function pageToEntry(page: PageObjectResponse): Entry {
