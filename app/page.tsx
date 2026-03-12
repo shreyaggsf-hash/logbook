@@ -144,31 +144,37 @@ export default function HomePage() {
     <>
       {/* Year / Month header */}
       <div className="flex items-center gap-3 mb-6">
-        <label className="inline-flex items-center gap-0.5 cursor-pointer">
+        {/* Year picker — span sizes to content, invisible select overlaid on top */}
+        <div className="relative inline-flex items-center gap-1">
+          <span className="text-3xl font-bold text-indigo-600 pointer-events-none">{year}</span>
+          <ChevronsUpDown size={13} className="text-indigo-400 shrink-0 pointer-events-none" />
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="text-3xl font-bold text-indigo-600 bg-transparent border-none outline-none cursor-pointer appearance-none p-0"
+            className="absolute inset-0 opacity-0 w-full cursor-pointer"
           >
             {yearOptions.map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
-          <ChevronsUpDown size={14} className="text-indigo-400 shrink-0" />
-        </label>
-        <label className="inline-flex items-center gap-0.5 cursor-pointer">
+        </div>
+        {/* Month picker */}
+        <div className="relative inline-flex items-center gap-1">
+          <span className="text-xl font-bold text-gray-900 pointer-events-none">
+            {month === null ? "Full year" : MONTH_NAMES[month - 1]}
+          </span>
+          <ChevronsUpDown size={13} className="text-gray-400 shrink-0 pointer-events-none" />
           <select
             value={month ?? ""}
             onChange={(e) => setMonth(e.target.value === "" ? null : Number(e.target.value))}
-            className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer appearance-none p-0"
+            className="absolute inset-0 opacity-0 w-full cursor-pointer"
           >
             <option value="">Full year</option>
             {MONTH_NAMES.map((name, i) => (
               <option key={i} value={i + 1}>{name}</option>
             ))}
           </select>
-          <ChevronsUpDown size={14} className="text-gray-400 shrink-0" />
-        </label>
+        </div>
       </div>
 
       {/* Category count pills */}
