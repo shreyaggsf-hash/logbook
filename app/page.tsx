@@ -207,10 +207,10 @@ export default function HomePage() {
         </>
       )}
 
-      {/* FAB */}
+      {/* FAB — centered in bottom nav */}
       <button
         onClick={() => setShowForm(true)}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-indigo-700 active:scale-95 transition-transform"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center text-3xl hover:bg-indigo-700 active:scale-95 transition-transform z-50"
         aria-label="Add entry"
       >
         +

@@ -21,7 +21,7 @@ export default function RootLayout({
 
           {/* Bottom tab bar */}
           <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
-            <div className="max-w-sm mx-auto flex">
+            <div className="max-w-sm mx-auto flex items-center">
               <Link
                 href="/"
                 className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
@@ -29,6 +29,8 @@ export default function RootLayout({
                 <BookOpen size={22} />
                 <span className="text-xs font-medium">Logbook</span>
               </Link>
+              {/* Center slot — filled by FAB from page.tsx */}
+              <div className="w-20" />
               <Link
                 href="/stats"
                 className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
