@@ -130,10 +130,12 @@ export async function POST() {
 
     const { author, image } = await enrichFromOpenLibrary(book.title);
 
+    const today = new Date().toISOString().slice(0, 10);
+
     await createEntry({
       title: book.title,
       category: "Book",
-      date: null,
+      date: today,
       rating: book.rating,
       notes: "",
       creator: author,
