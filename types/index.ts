@@ -17,6 +17,7 @@ export interface Entry {
   notes: string;
   creator: string; // author / director / artist / etc.
   tags: string[];
+  image?: string | null; // cover / poster URL
 }
 
 export interface EntryFormData {

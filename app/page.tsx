@@ -1,38 +1,86 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar } from "lucide-react";
-import EntryCard from "@/components/EntryCard";
+import {
+  Plus, X, ChevronUp, ChevronDown,
+  BookOpen, Film, Tv, Mic, Landmark, Calendar,
+} from "lucide-react";
 import EntryForm from "@/components/EntryForm";
-import FilterBar, { Filters } from "@/components/FilterBar";
 import type { Entry, Category } from "@/types";
 
-const DIAL_CATEGORIES: { name: Category; icon: React.ElementType }[] = [
-  { name: "Book", icon: BookOpen },
-  { name: "Movie", icon: Film },
-  { name: "TV Show", icon: Tv },
-  { name: "Podcast", icon: Mic },
-  { name: "Exhibit", icon: Landmark },
-  { name: "Event", icon: Calendar },
+const MONTH_NAMES = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
 ];
 
-const DEFAULT_FILTERS: Filters = {
-  search: "",
-  category: "",
-  year: "",
-  rating: "",
-  sort: "date-desc",
-};
+const CATEGORIES: {
+  name: Category;
+  singular: string;
+  plural: string;
+  icon: React.ElementType;
+  bg: string;
+}[] = [
+  { name: "Book",    singular: "Book",    plural: "Books",    icon: BookOpen, bg: "bg-amber-100"  },
+  { name: "Movie",   singular: "Movie",   plural: "Movies",   icon: Film,     bg: "bg-blue-100"   },
+  { name: "TV Show", singular: "Show",    plural: "Shows",    icon: Tv,       bg: "bg-purple-100" },
+  { name: "Podcast", singular: "Podcast", plural: "Podcasts", icon: Mic,      bg: "bg-green-100"  },
+  { name: "Exhibit", singular: "Exhibit", plural: "Exhibits", icon: Landmark, bg: "bg-pink-100"   },
+  { name: "Event",   singular: "Event",   plural: "Events",   icon: Calendar, bg: "bg-orange-100" },
+];
+
+function Stars({ rating }: { rating: number | null }) {
+  if (!rating) return null;
+  return <span className="text-amber-400 text-xs">{"★".repeat(rating)}</span>;
+}
+
+function EntryThumb({
+  entry,
+  bg,
+  Icon,
+  onClick,
+}: {
+  entry: Entry;
+  bg: string;
+  Icon: React.ElementType;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 w-[72px] flex flex-col gap-1 text-left active:scale-95 transition-transform"
+    >
+      {entry.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={entry.image}
+          alt=""
+          className="w-[72px] h-[100px] object-cover rounded-lg shadow-sm"
+        />
+      ) : (
+        <div className={`w-[72px] h-[100px] rounded-lg ${bg} flex items-center justify-center shadow-sm`}>
+          <Icon size={22} className="text-gray-400" />
+        </div>
+      )}
+      <span className="text-xs text-gray-700 font-medium line-clamp-2 leading-tight">
+        {entry.title}
+      </span>
+      <Stars rating={entry.rating} />
+    </button>
+  );
+}
 
 export default function HomePage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [showForm, setShowForm] = useState(false);
   const [editEntry, setEditEntry] = useState<Entry | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showDial, setShowDial] = useState(false);
+
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
 
   async function fetchEntries() {
     setLoading(true);
@@ -49,59 +97,22 @@ export default function HomePage() {
     }
   }
 
-  useEffect(() => {
-    fetchEntries();
-  }, []);
+  useEffect(() => { fetchEntries(); }, []);
 
-  const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    for (const e of entries) {
-      if (e.date) years.add(e.date.slice(0, 4));
-    }
-    return [...years].sort((a, b) => b.localeCompare(a));
-  }, [entries]);
+  function prevMonth() {
+    if (month === 1) { setMonth(12); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+  }
+  function nextMonth() {
+    if (month === 12) { setMonth(1); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+  }
 
-  const filtered = useMemo(() => {
-    let result = [...entries];
-    const q = filters.search.toLowerCase();
-
-    if (q) {
-      result = result.filter(
-        (e) =>
-          e.title.toLowerCase().includes(q) ||
-          e.creator.toLowerCase().includes(q) ||
-          e.notes.toLowerCase().includes(q) ||
-          e.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    }
-    if (filters.category) {
-      result = result.filter((e) => e.category === filters.category);
-    }
-    if (filters.year) {
-      result = result.filter((e) => e.date?.startsWith(filters.year));
-    }
-    if (filters.rating) {
-      const min = Number(filters.rating);
-      result = result.filter((e) => (e.rating ?? 0) >= min);
-    }
-
-    switch (filters.sort) {
-      case "date-asc":
-        result.sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
-        break;
-      case "date-desc":
-        result.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
-        break;
-      case "rating-desc":
-        result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-        break;
-      case "title-asc":
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-    }
-
-    return result;
-  }, [entries, filters]);
+  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  const monthEntries = useMemo(
+    () => entries.filter((e) => e.date?.startsWith(monthKey)),
+    [entries, monthKey]
+  );
 
   function handleSave(saved: Entry) {
     setEntries((prev) => {
@@ -122,6 +133,8 @@ export default function HomePage() {
       const res = await fetch(`/api/entries/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       setEntries((prev) => prev.filter((e) => e.id !== id));
+      setShowForm(false);
+      setEditEntry(null);
     } catch {
       alert("Failed to delete entry.");
     }
@@ -146,84 +159,110 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Logbook</h1>
-        {!loading && (
-          <p className="text-sm text-gray-500 mt-0.5">
-            {entries.length} {entries.length === 1 ? "entry" : "entries"} total
-          </p>
-        )}
-      </div>
-
-      <div className="mb-6">
-        <FilterBar
-          filters={filters}
-          availableYears={availableYears}
-          onChange={setFilters}
-        />
-      </div>
-
-      {loading && (
-        <div className="flex flex-col gap-3">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl border border-gray-100 p-4 h-36 animate-pulse"
+      {/* Year / Month header */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-1.5">
+          <span className="text-3xl font-bold text-indigo-600">{year}</span>
+          <div className="flex flex-col">
+            <button
+              onClick={() => setYear((y) => y + 1)}
+              className="text-gray-400 hover:text-indigo-600 leading-none"
             >
-              <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
-              <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
-              <div className="h-4 bg-gray-100 rounded w-1/2" />
-            </div>
+              <ChevronUp size={16} />
+            </button>
+            <button
+              onClick={() => setYear((y) => y - 1)}
+              className="text-gray-400 hover:text-indigo-600 leading-none"
+            >
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xl font-bold text-gray-900">{MONTH_NAMES[month - 1]}</span>
+          <div className="flex flex-col">
+            <button
+              onClick={nextMonth}
+              className="text-gray-400 hover:text-indigo-600 leading-none"
+            >
+              <ChevronUp size={16} />
+            </button>
+            <button
+              onClick={prevMonth}
+              className="text-gray-400 hover:text-indigo-600 leading-none"
+            >
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Category count pills */}
+      {loading ? (
+        <div className="grid grid-cols-3 gap-2 mb-6 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-gray-200 rounded-xl h-12" />
           ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {CATEGORIES.map(({ name, singular, plural }) => {
+            const count = monthEntries.filter((e) => e.category === name).length;
+            return (
+              <button
+                key={name}
+                onClick={() => openWithCategory(name)}
+                className="bg-indigo-600 text-white rounded-xl py-3 px-2 text-sm font-semibold text-center active:scale-95 transition-transform"
+              >
+                {count} {count === 1 ? singular : plural}
+              </button>
+            );
+          })}
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center mb-6">
           <p className="text-red-700 font-medium">{error}</p>
-          <button
-            onClick={fetchEntries}
-            className="mt-3 text-sm text-red-600 underline"
-          >
+          <button onClick={fetchEntries} className="mt-3 text-sm text-red-600 underline">
             Retry
           </button>
         </div>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
-        <div className="text-center py-20">
-          <p className="text-gray-400 text-lg mb-2">
-            {entries.length === 0
-              ? "Your logbook is empty — start adding entries!"
-              : "No entries match your filters."}
-          </p>
-          {entries.length === 0 && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-2 px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Add your first entry
-            </button>
+      {/* Per-category sections */}
+      {!loading && !error && (
+        <div className="flex flex-col gap-4">
+          {CATEGORIES.map(({ name, plural, icon: Icon, bg }) => {
+            const catEntries = monthEntries.filter((e) => e.category === name);
+            if (catEntries.length === 0) return null;
+            return (
+              <div key={name} className="bg-gray-100 rounded-2xl p-4">
+                <h2 className="text-base font-bold text-indigo-600 mb-3">{plural}</h2>
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pb-1">
+                    {catEntries.map((entry) => (
+                      <EntryThumb
+                        key={entry.id}
+                        entry={entry}
+                        bg={bg}
+                        Icon={Icon}
+                        onClick={() => openEdit(entry)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {monthEntries.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-gray-400 text-base">
+                Nothing logged for {MONTH_NAMES[month - 1]} {year} yet.
+              </p>
+            </div>
           )}
         </div>
-      )}
-
-      {!loading && !error && filtered.length > 0 && (
-        <>
-          <p className="text-xs text-gray-400 mb-3">
-            Showing {filtered.length} of {entries.length}
-          </p>
-          <div className="flex flex-col gap-3">
-            {filtered.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                entry={entry}
-                onEdit={openEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        </>
       )}
 
       {/* Speed dial backdrop */}
@@ -238,7 +277,7 @@ export default function HomePage() {
       {showDial && (
         <div className="fixed bottom-24 left-0 right-0 z-50 px-4 animate-slide-up">
           <div className="grid grid-cols-2 gap-2">
-            {DIAL_CATEGORIES.map(({ name, icon: Icon }) => (
+            {CATEGORIES.map(({ name, icon: Icon }) => (
               <button
                 key={name}
                 onClick={() => openWithCategory(name)}
@@ -254,7 +293,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* FAB — centered in bottom nav */}
+      {/* FAB */}
       <button
         onClick={() => setShowDial((d) => !d)}
         className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-white border-4 border-indigo-600 text-indigo-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
@@ -269,6 +308,7 @@ export default function HomePage() {
           initialCategory={selectedCategory as Category ?? undefined}
           onSave={handleSave}
           onClose={closeForm}
+          onDelete={editEntry ? handleDelete : undefined}
         />
       )}
     </>

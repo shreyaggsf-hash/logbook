@@ -9,7 +9,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { title, category, date, rating, notes, creator, tags } = body;
+    const { title, category, date, rating, notes, creator, tags, image } = body;
 
     const entry = await updateEntry(id, {
       ...(title !== undefined && { title }),
@@ -19,6 +19,7 @@ export async function PATCH(
       ...(notes !== undefined && { notes }),
       ...(creator !== undefined && { creator }),
       ...(tags !== undefined && { tags }),
+      ...(image !== undefined && { image }),
     });
 
     return NextResponse.json(entry);

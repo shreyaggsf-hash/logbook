@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, category, date, rating, notes, creator, tags } = body;
+    const { title, category, date, rating, notes, creator, tags, image } = body;
 
     if (!title || !category) {
       return NextResponse.json({ error: "title and category are required" }, { status: 400 });
@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       notes: notes || "",
       creator: creator || "",
       tags: Array.isArray(tags) ? tags : [],
+      image: image || null,
     });
 
     return NextResponse.json(entry, { status: 201 });

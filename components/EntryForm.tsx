@@ -48,9 +48,10 @@ interface Props {
   initialCategory?: Category;
   onSave: (entry: Entry) => void;
   onClose: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export default function EntryForm({ entry, initialCategory, onSave, onClose }: Props) {
+export default function EntryForm({ entry, initialCategory, onSave, onClose, onDelete }: Props) {
   const isEditing = !!entry;
 
   const [form, setForm] = useState({
@@ -62,7 +63,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose }: P
     creator: "",
     tags: "",
   });
+  const [imageUrl, setImageUrl] = useState(entry?.image ?? "");
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -120,6 +123,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose }: P
 
   function pickSuggestion(s: Suggestion) {
     justPickedRef.current = true;
+    if (s.image) setImageUrl(s.image);
     setForm((prev) => ({
       ...prev,
       title: s.title,
@@ -172,6 +176,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose }: P
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      image: imageUrl || null,
     };
 
     try {
@@ -399,21 +404,53 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose }: P
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <div className="flex justify-end gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-            >
-              {saving ? "Saving..." : isEditing ? "Save changes" : "Add entry"}
-            </button>
+          <div className="flex justify-between items-center pt-1">
+            {isEditing && onDelete ? (
+              confirmDelete ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onDelete(entry!.id)}
+                    className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Confirm delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  className="text-sm text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Delete entry
+                </button>
+              )
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              >
+                {saving ? "Saving..." : isEditing ? "Save changes" : "Add entry"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -51,6 +51,13 @@ function getNumber(page: PageObjectResponse, prop: string): number | null {
   return null;
 }
 
+function getCoverImage(page: PageObjectResponse): string | null {
+  if (!page.cover) return null;
+  if (page.cover.type === "external") return page.cover.external.url;
+  if (page.cover.type === "file") return page.cover.file.url;
+  return null;
+}
+
 function pageToEntry(page: PageObjectResponse): Entry {
   return {
     id: page.id,
@@ -61,6 +68,7 @@ function pageToEntry(page: PageObjectResponse): Entry {
     notes: getRichText(page, "Notes"),
     creator: getRichText(page, "Creator"),
     tags: getMultiSelect(page, "Tags"),
+    image: getCoverImage(page),
   };
 }
 
@@ -96,6 +104,7 @@ export async function createEntry(data: {
   notes: string;
   creator: string;
   tags: string[];
+  image?: string | null;
 }): Promise<Entry> {
   const properties: CreatePageParameters["properties"] = {
     Name: { title: [{ text: { content: data.title } }] },
@@ -112,10 +121,15 @@ export async function createEntry(data: {
     properties["Rating"] = { number: data.rating };
   }
 
-  const page = await notion.pages.create({
+  const createParams: CreatePageParameters = {
     parent: { database_id: DATABASE_ID },
     properties,
-  });
+  };
+  if (data.image) {
+    createParams.cover = { type: "external", external: { url: data.image } };
+  }
+
+  const page = await notion.pages.create(createParams);
 
   return pageToEntry(page as PageObjectResponse);
 }
@@ -130,6 +144,7 @@ export async function updateEntry(
     notes: string;
     creator: string;
     tags: string[];
+    image: string | null;
   }>
 ): Promise<Entry> {
   const properties: UpdatePageParameters["properties"] = {};
@@ -155,7 +170,14 @@ export async function updateEntry(
   if (data.rating !== undefined)
     properties["Rating"] = { number: data.rating };
 
-  const page = await notion.pages.update({ page_id: id, properties });
+  const updateParams: UpdatePageParameters = { page_id: id, properties };
+  if (data.image !== undefined) {
+    updateParams.cover = data.image
+      ? { type: "external", external: { url: data.image } }
+      : null;
+  }
+
+  const page = await notion.pages.update(updateParams);
   return pageToEntry(page as PageObjectResponse);
 }
 
