@@ -48,20 +48,25 @@ export async function GET(req: NextRequest) {
     }
 
     if (category === "Movie") {
+      const tmdbKey = process.env.TMDB_API_KEY;
+      if (!tmdbKey) return NextResponse.json([]);
       const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&entity=movie&limit=8`,
-        { cache: "no-store" }
+        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`,
+        {
+          headers: { Authorization: `Bearer ${tmdbKey}` },
+          cache: "no-store",
+        }
       );
       const data = await res.json();
-      const results = (data.results as ItunesItem[])
-        .filter((d) => d.trackName)
-        .slice(0, 6)
-        .map((d) => ({
-          title: d.trackName!,
-          creator: d.artistName ?? "",
-          subtitle: undefined,
-          image: d.artworkUrl100 ?? null,
-        }));
+      type TmdbMovie = { title: string; release_date?: string; poster_path?: string | null };
+      const results = (data.results as TmdbMovie[]).slice(0, 6).map((d) => ({
+        title: d.title,
+        creator: "",
+        subtitle: d.release_date ? d.release_date.slice(0, 4) : undefined,
+        image: d.poster_path
+          ? `https://image.tmdb.org/t/p/w92${d.poster_path}`
+          : null,
+      }));
       return NextResponse.json(results);
     }
 
