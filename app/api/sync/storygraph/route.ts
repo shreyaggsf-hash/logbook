@@ -4,6 +4,7 @@ import { getAllEntries, createEntry } from "@/lib/notion";
 interface StoryGraphBook {
   title: string;
   book_id: string;
+  author: string;
   rating: number | null;
 }
 
@@ -47,30 +48,33 @@ function parseStorygraphBooks(html: string): StoryGraphBook[] {
       }
     }
 
-    books.push({ title, book_id, rating });
+    // Author from the first /authors/ link in the block
+    const authorMatch = block.match(/<a[^>]+href="\/authors\/[^"]*"[^>]*>([^<]+)<\/a>/);
+    const author = authorMatch ? authorMatch[1].trim() : "";
+
+    books.push({ title, book_id, author, rating });
   }
 
   return books;
 }
 
-async function enrichFromOpenLibrary(
-  title: string
-): Promise<{ author: string; image: string | null }> {
+async function getCoverFromOpenLibrary(
+  title: string,
+  author: string
+): Promise<string | null> {
   try {
+    const params = new URLSearchParams({ title, limit: "1", fields: "cover_i" });
+    if (author) params.set("author", author);
     const res = await fetch(
-      `https://openlibrary.org/search.json?q=${encodeURIComponent(title)}&limit=1&fields=author_name,cover_i`,
+      `https://openlibrary.org/search.json?${params}`,
       { cache: "no-store" }
     );
-    if (!res.ok) return { author: "", image: null };
+    if (!res.ok) return null;
     const data = await res.json();
-    const doc = data.docs?.[0];
-    const author = doc?.author_name?.[0] ?? "";
-    const image = doc?.cover_i
-      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
-      : null;
-    return { author, image };
+    const coverId = data.docs?.[0]?.cover_i;
+    return coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : null;
   } catch {
-    return { author: "", image: null };
+    return null;
   }
 }
 
@@ -128,8 +132,7 @@ export async function POST() {
       continue;
     }
 
-    const { author, image } = await enrichFromOpenLibrary(book.title);
-
+    const image = await getCoverFromOpenLibrary(book.title, book.author);
     const today = new Date().toISOString().slice(0, 10);
 
     await createEntry({
@@ -138,7 +141,7 @@ export async function POST() {
       date: today,
       rating: book.rating,
       notes: "",
-      creator: author,
+      creator: book.author,
       tags: [],
       image,
     });
