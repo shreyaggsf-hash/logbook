@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
           creator: d.author_name?.[0] ?? "",
           subtitle: undefined,
           image: d.cover_i
-            ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg`
+            ? `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`
             : null,
         }));
       return NextResponse.json(results);
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
             title: d.trackName!,
             creator: "",
             subtitle: d.collectionName ?? "",
-            image: d.artworkUrl100 ?? null,
+            image: d.artworkUrl100 ? d.artworkUrl100.replace("100x100bb", "600x600bb") : null,
           }));
         return NextResponse.json(results);
       }
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
             title: d.trackName!,
             creator: "",
             subtitle: d.collectionName ?? "",
-            image: d.artworkUrl100 ?? null,
+            image: d.artworkUrl100 ? d.artworkUrl100.replace("100x100bb", "600x600bb") : null,
           }));
         return NextResponse.json(results);
       }
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
         title: d.collectionName ?? d.trackName ?? "",
         creator: d.artistName ?? "",
         subtitle: undefined,
-        image: d.artworkUrl100 ?? null,
+        image: d.artworkUrl100 ? d.artworkUrl100.replace("100x100bb", "600x600bb") : null,
       }));
       return NextResponse.json(results);
     }
@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
         title: d.collectionName ?? "",
         creator: d.artistName ?? "",
         subtitle: undefined,
-        image: d.artworkUrl100 ?? null,
+        image: d.artworkUrl100 ? d.artworkUrl100.replace("100x100bb", "600x600bb") : null,
       }));
       return NextResponse.json(results);
     }

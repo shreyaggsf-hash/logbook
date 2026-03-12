@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Plus, X, ChevronUp, ChevronDown,
-  BookOpen, Film, Tv, Mic, Landmark, Calendar,
-} from "lucide-react";
+import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar } from "lucide-react";
 import EntryForm from "@/components/EntryForm";
 import type { Entry, Category } from "@/types";
 
@@ -28,11 +25,6 @@ const CATEGORIES: {
   { name: "Event",   singular: "Event",   plural: "Events",   icon: Calendar, bg: "bg-orange-100" },
 ];
 
-function Stars({ rating }: { rating: number | null }) {
-  if (!rating) return null;
-  return <span className="text-amber-400 text-xs">{"★".repeat(rating)}</span>;
-}
-
 function EntryThumb({
   entry,
   bg,
@@ -47,7 +39,7 @@ function EntryThumb({
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[72px] flex flex-col gap-1 text-left active:scale-95 transition-transform"
+      className="flex-shrink-0 w-[72px] active:scale-95 transition-transform"
     >
       {entry.image ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -61,10 +53,6 @@ function EntryThumb({
           <Icon size={22} className="text-gray-400" />
         </div>
       )}
-      <span className="text-xs text-gray-700 font-medium line-clamp-2 leading-tight">
-        {entry.title}
-      </span>
-      <Stars rating={entry.rating} />
     </button>
   );
 }
@@ -80,7 +68,11 @@ export default function HomePage() {
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [month, setMonth] = useState<number | null>(now.getMonth() + 1);
+  const yearOptions = Array.from(
+    { length: now.getFullYear() - 2019 + 2 },
+    (_, i) => 2020 + i
+  );
 
   async function fetchEntries() {
     setLoading(true);
@@ -99,20 +91,11 @@ export default function HomePage() {
 
   useEffect(() => { fetchEntries(); }, []);
 
-  function prevMonth() {
-    if (month === 1) { setMonth(12); setYear((y) => y - 1); }
-    else setMonth((m) => m - 1);
-  }
-  function nextMonth() {
-    if (month === 12) { setMonth(1); setYear((y) => y + 1); }
-    else setMonth((m) => m + 1);
-  }
-
-  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
-  const monthEntries = useMemo(
-    () => entries.filter((e) => e.date?.startsWith(monthKey)),
-    [entries, monthKey]
-  );
+  const monthEntries = useMemo(() => {
+    if (month === null) return entries.filter((e) => e.date?.startsWith(`${year}`));
+    const key = `${year}-${String(month).padStart(2, "0")}`;
+    return entries.filter((e) => e.date?.startsWith(key));
+  }, [entries, year, month]);
 
   function handleSave(saved: Entry) {
     setEntries((prev) => {
@@ -160,41 +143,26 @@ export default function HomePage() {
   return (
     <>
       {/* Year / Month header */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex items-center gap-1.5">
-          <span className="text-3xl font-bold text-indigo-600">{year}</span>
-          <div className="flex flex-col">
-            <button
-              onClick={() => setYear((y) => y + 1)}
-              className="text-gray-400 hover:text-indigo-600 leading-none"
-            >
-              <ChevronUp size={16} />
-            </button>
-            <button
-              onClick={() => setYear((y) => y - 1)}
-              className="text-gray-400 hover:text-indigo-600 leading-none"
-            >
-              <ChevronDown size={16} />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xl font-bold text-gray-900">{MONTH_NAMES[month - 1]}</span>
-          <div className="flex flex-col">
-            <button
-              onClick={nextMonth}
-              className="text-gray-400 hover:text-indigo-600 leading-none"
-            >
-              <ChevronUp size={16} />
-            </button>
-            <button
-              onClick={prevMonth}
-              className="text-gray-400 hover:text-indigo-600 leading-none"
-            >
-              <ChevronDown size={16} />
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center gap-3 mb-6">
+        <select
+          value={year}
+          onChange={(e) => setYear(Number(e.target.value))}
+          className="text-3xl font-bold text-indigo-600 bg-transparent border-none outline-none cursor-pointer appearance-auto"
+        >
+          {yearOptions.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+        <select
+          value={month ?? ""}
+          onChange={(e) => setMonth(e.target.value === "" ? null : Number(e.target.value))}
+          className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer appearance-auto"
+        >
+          <option value="">Full year</option>
+          {MONTH_NAMES.map((name, i) => (
+            <option key={i} value={i + 1}>{name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Category count pills */}
@@ -258,7 +226,8 @@ export default function HomePage() {
           {monthEntries.length === 0 && (
             <div className="text-center py-16">
               <p className="text-gray-400 text-base">
-                Nothing logged for {MONTH_NAMES[month - 1]} {year} yet.
+                Nothing logged for{" "}
+                {month === null ? year : `${MONTH_NAMES[month - 1]} ${year}`} yet.
               </p>
             </div>
           )}

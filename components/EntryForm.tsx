@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import type { Entry, Category } from "@/types";
 
 const CATEGORIES: Category[] = [
@@ -413,7 +413,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                     onClick={() => onDelete(entry!.id)}
                     className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700"
                   >
-                    Confirm delete
+                    Confirm
                   </button>
                   <button
                     type="button"
@@ -427,9 +427,10 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="text-sm text-red-500 hover:text-red-700 transition-colors"
+                  className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                  title="Delete entry"
                 >
-                  Delete entry
+                  <Trash2 size={18} />
                 </button>
               )
             ) : (
@@ -448,7 +449,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 disabled={saving}
                 className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
-                {saving ? "Saving..." : isEditing ? "Save changes" : "Add entry"}
+                {saving ? "Saving..." : isEditing ? "Save" : "Add entry"}
               </button>
             </div>
           </div>
