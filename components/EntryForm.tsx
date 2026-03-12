@@ -68,6 +68,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [exhibitUrl, setExhibitUrl] = useState("");
+  const [ogFetching, setOgFetching] = useState(false);
+  const ogDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isEpisode, setIsEpisode] = useState(false);
   const [showName, setShowName] = useState("");
@@ -95,6 +98,25 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
       setShowName("");
     }
   }, [form.category]);
+
+  function handleExhibitUrlChange(url: string) {
+    setExhibitUrl(url);
+    if (ogDebounceRef.current) clearTimeout(ogDebounceRef.current);
+    if (!url.startsWith("http")) return;
+    ogDebounceRef.current = setTimeout(async () => {
+      setOgFetching(true);
+      try {
+        const res = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.image) setImageUrl(data.image);
+        if (data.title && !form.title.trim()) set("title", data.title);
+      } catch {
+        // ignore
+      } finally {
+        setOgFetching(false);
+      }
+    }, 600);
+  }
 
   // Debounced suggestion fetch
   useEffect(() => {
@@ -289,6 +311,30 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               </ul>
             )}
           </div>
+
+          {/* Exhibit URL → OG image fetch */}
+          {form.category === "Exhibit" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Exhibition link{" "}
+                <span className="text-gray-400 font-normal">(paste URL to auto-fill image)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  value={exhibitUrl}
+                  onChange={(e) => handleExhibitUrlChange(e.target.value)}
+                  placeholder="https://www.metmuseum.org/exhibitions/..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {ogFetching && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                    Fetching…
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Episode toggle for TV Show / Podcast */}
           {canPickEpisode && (
