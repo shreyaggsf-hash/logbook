@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { Entry, Category, Status } from "@/types";
 
@@ -16,6 +16,137 @@ const CATEGORIES: Category[] = [
 ];
 
 const STATUSES: Status[] = ["Completed", "In Progress", "Abandoned", "Want to"];
+
+const SEARCHABLE: Category[] = ["Book", "Movie", "TV Show", "Podcast", "Album"];
+const EPISODE_CATEGORIES: Category[] = ["TV Show", "Podcast"];
+
+interface Suggestion {
+  title: string;
+  creator: string;
+  image?: string;
+}
+
+type ItunesItem = {
+  trackName?: string;
+  collectionName?: string;
+  artistName?: string;
+  artworkUrl100?: string;
+};
+
+async function fetchSuggestions(
+  query: string,
+  category: Category,
+  episodeMode: boolean,
+  showName: string
+): Promise<Suggestion[]> {
+  if (query.length < 2 || !SEARCHABLE.includes(category)) return [];
+  try {
+    if (category === "Book") {
+      const res = await fetch(
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=title,author_name,cover_i`
+      );
+      const data = await res.json();
+      return (data.docs as { title: string; author_name?: string[]; cover_i?: number }[])
+        .slice(0, 6)
+        .map((d) => ({
+          title: d.title,
+          creator: d.author_name?.[0] ?? "",
+          image: d.cover_i
+            ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg`
+            : undefined,
+        }));
+    }
+
+    if (category === "Movie") {
+      const res = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=movie&limit=6`
+      );
+      const data = await res.json();
+      return data.results.map((d: ItunesItem) => ({
+        title: d.trackName ?? "",
+        creator: d.artistName ?? "",
+        image: d.artworkUrl100,
+      }));
+    }
+
+    if (category === "TV Show") {
+      if (episodeMode) {
+        const term = showName ? `${showName} ${query}` : query;
+        const res = await fetch(
+          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=tvShow&entity=tvEpisode&limit=10`
+        );
+        const data = await res.json();
+        return (data.results as ItunesItem[])
+          .filter((d) => d.trackName)
+          .slice(0, 6)
+          .map((d) => ({
+            title: d.trackName!,
+            creator: d.collectionName ?? "",
+            image: d.artworkUrl100,
+          }));
+      }
+
+      const res = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=tvShow&entity=tvSeason&limit=12`
+      );
+      const data = await res.json();
+      const seen = new Set<string>();
+      const results: Suggestion[] = [];
+      for (const d of data.results as ItunesItem[]) {
+        const name = d.collectionName ?? d.trackName ?? "";
+        if (name && !seen.has(name)) {
+          seen.add(name);
+          results.push({ title: name, creator: d.artistName ?? "", image: d.artworkUrl100 });
+        }
+        if (results.length >= 6) break;
+      }
+      return results;
+    }
+
+    if (category === "Podcast") {
+      if (episodeMode) {
+        const term = showName ? `${showName} ${query}` : query;
+        const res = await fetch(
+          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&entity=podcastEpisode&limit=10`
+        );
+        const data = await res.json();
+        return (data.results as ItunesItem[])
+          .filter((d) => d.trackName)
+          .slice(0, 6)
+          .map((d) => ({
+            title: d.trackName!,
+            creator: d.collectionName ?? "",
+            image: d.artworkUrl100,
+          }));
+      }
+
+      const res = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=podcast&limit=6`
+      );
+      const data = await res.json();
+      return (data.results as ItunesItem[]).map((d) => ({
+        title: d.collectionName ?? d.trackName ?? "",
+        creator: d.artistName ?? "",
+        image: d.artworkUrl100,
+      }));
+    }
+
+    if (category === "Album") {
+      const res = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=6`
+      );
+      const data = await res.json();
+      return (data.results as ItunesItem[]).map((d) => ({
+        title: d.collectionName ?? "",
+        creator: d.artistName ?? "",
+        image: d.artworkUrl100,
+      }));
+    }
+  } catch {
+    // silently ignore network errors
+  }
+  return [];
+}
 
 interface Props {
   entry?: Entry | null;
@@ -38,6 +169,11 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isEpisode, setIsEpisode] = useState(false);
+  const [showName, setShowName] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (entry) {
@@ -54,21 +190,79 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
     }
   }, [entry]);
 
+  // Reset episode mode when category changes away from TV Show / Podcast
+  useEffect(() => {
+    if (!EPISODE_CATEGORIES.includes(form.category)) {
+      setIsEpisode(false);
+      setShowName("");
+    }
+  }, [form.category]);
+
+  // Debounced suggestion fetch
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (form.title.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      const results = await fetchSuggestions(form.title, form.category, isEpisode, showName);
+      setSuggestions(results);
+      if (results.length > 0) setShowSuggestions(true);
+    }, 350);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [form.title, form.category, isEpisode, showName]);
+
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function pickSuggestion(s: Suggestion) {
+    setForm((prev) => ({
+      ...prev,
+      title: s.title,
+      creator: s.creator || prev.creator,
+    }));
+    setSuggestions([]);
+    setShowSuggestions(false);
+    // If this is a show-level pick for an episode-capable category, reset episode mode
+    if (EPISODE_CATEGORIES.includes(form.category)) {
+      setIsEpisode(false);
+      setShowName(s.title);
+    }
+  }
+
+  function toggleEpisode(checked: boolean) {
+    setIsEpisode(checked);
+    if (checked) {
+      // Lock show name, clear title for episode input
+      setShowName(form.title || showName);
+      setForm((prev) => ({ ...prev, title: "" }));
+    } else {
+      // Restore show name to title field
+      setForm((prev) => ({ ...prev, title: showName }));
+    }
+    setSuggestions([]);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) {
-      setError("Title is required.");
+      setError(isEpisode ? "Episode title is required." : "Title is required.");
       return;
     }
     setSaving(true);
     setError("");
 
+    const finalTitle =
+      isEpisode && showName
+        ? `${showName} – ${form.title.trim()}`
+        : form.title.trim();
+
     const payload = {
-      title: form.title.trim(),
+      title: finalTitle,
       category: form.category,
       status: form.status,
       date: form.date || null,
@@ -100,6 +294,9 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
     }
   }
 
+  const canPickEpisode =
+    !isEditing && EPISODE_CATEGORIES.includes(form.category) && (showName || form.title);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -116,19 +313,89 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Title */}
-          <div>
+          {/* Show name lock (episode mode) */}
+          {isEpisode && showName && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg text-sm">
+              <span className="text-indigo-400 font-medium shrink-0">
+                {form.category === "Podcast" ? "Podcast" : "Show"}
+              </span>
+              <span className="text-indigo-900 font-semibold truncate">{showName}</span>
+              <button
+                type="button"
+                onClick={() => toggleEpisode(false)}
+                className="ml-auto text-indigo-300 hover:text-indigo-500 shrink-0"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Title / Episode title with autocomplete */}
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-red-500">*</span>
+              {isEpisode ? "Episode title" : "Title"}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.title}
-              onChange={(e) => set("title", e.target.value)}
-              placeholder="e.g. The Bear, Normal People, Dune..."
+              onChange={(e) => {
+                set("title", e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder={
+                isEpisode
+                  ? "Search for an episode..."
+                  : "e.g. The Bear, Normal People, Dune..."
+              }
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                {suggestions.map((s, i) => (
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onMouseDown={() => pickSuggestion(s)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors flex items-center gap-3"
+                    >
+                      {s.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={s.image}
+                          alt=""
+                          className="w-10 h-10 object-cover rounded flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{s.title}</div>
+                        {s.creator && (
+                          <div className="text-gray-400 text-xs truncate">{s.creator}</div>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
+          {/* Episode toggle for TV Show / Podcast */}
+          {canPickEpisode && (
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isEpisode}
+                onChange={(e) => toggleEpisode(e.target.checked)}
+                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              Log a specific episode
+            </label>
+          )}
 
           {/* Category + Status */}
           <div className="grid grid-cols-2 gap-4">
@@ -138,7 +405,10 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
               </label>
               <select
                 value={form.category}
-                onChange={(e) => set("category", e.target.value)}
+                onChange={(e) => {
+                  set("category", e.target.value);
+                  setSuggestions([]);
+                }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {CATEGORIES.map((c) => (
