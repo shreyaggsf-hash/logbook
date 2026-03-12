@@ -63,7 +63,7 @@ export async function POST() {
   try {
     const res = await fetch(`https://app.thestorygraph.com/books-read/${username}`, {
       headers: {
-        Cookie: `remember_user_token=${cookie}`,
+        Cookie: `_storygraph_session=${cookie}`,
         "User-Agent": "Mozilla/5.0 (compatible; logbook-sync/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
