@@ -62,7 +62,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
           )}
         </div>
 
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onEdit(entry)}
             className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

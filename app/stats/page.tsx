@@ -58,7 +58,7 @@ export default function StatsPage() {
 
       {loading && (
         <div className="space-y-6 animate-pulse">
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-100 h-24" />
             ))}

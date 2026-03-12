@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
 import EntryCard from "@/components/EntryCard";
 import EntryForm from "@/components/EntryForm";
 import FilterBar, { Filters } from "@/components/FilterBar";
@@ -128,22 +127,13 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Logbook</h1>
-          {!loading && (
-            <p className="text-sm text-gray-500 mt-0.5">
-              {entries.length} {entries.length === 1 ? "entry" : "entries"} total
-            </p>
-          )}
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={16} />
-          Add entry
-        </button>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">My Logbook</h1>
+        {!loading && (
+          <p className="text-sm text-gray-500 mt-0.5">
+            {entries.length} {entries.length === 1 ? "entry" : "entries"} total
+          </p>
+        )}
       </div>
 
       <div className="mb-6">
@@ -155,7 +145,7 @@ export default function HomePage() {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-3">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -204,7 +194,7 @@ export default function HomePage() {
           <p className="text-xs text-gray-400 mb-3">
             Showing {filtered.length} of {entries.length}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-3">
             {filtered.map((entry) => (
               <EntryCard
                 key={entry.id}
@@ -216,6 +206,15 @@ export default function HomePage() {
           </div>
         </>
       )}
+
+      {/* FAB */}
+      <button
+        onClick={() => setShowForm(true)}
+        className="fixed bottom-20 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-indigo-700 active:scale-95 transition-transform"
+        aria-label="Add entry"
+      >
+        +
+      </button>
 
       {showForm && (
         <EntryForm

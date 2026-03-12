@@ -16,31 +16,29 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50 min-h-screen font-sans antialiased">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900">
-              <BookOpen size={20} className="text-indigo-600" />
-              Culture Logbook
-            </Link>
-            <nav className="flex items-center gap-1">
+        <div className="max-w-sm mx-auto min-h-screen flex flex-col">
+          <main className="flex-1 px-4 pt-6 pb-24">{children}</main>
+
+          {/* Bottom tab bar */}
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
+            <div className="max-w-sm mx-auto flex">
               <Link
                 href="/"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
               >
-                <BookOpen size={15} />
-                Logbook
+                <BookOpen size={22} />
+                <span className="text-xs font-medium">Logbook</span>
               </Link>
               <Link
                 href="/stats"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
               >
-                <BarChart2 size={15} />
-                Stats
+                <BarChart2 size={22} />
+                <span className="text-xs font-medium">Stats</span>
               </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+            </div>
+          </nav>
+        </div>
       </body>
     </html>
   );
