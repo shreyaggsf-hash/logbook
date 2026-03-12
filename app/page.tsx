@@ -100,9 +100,8 @@ export default function HomePage() {
       const res = await fetch("/api/sync", { method: "POST" });
       const data = await res.json();
       const books = data.storygraph?.created?.length ?? 0;
-      const albums = data.spotify?.created?.length ?? 0;
-      setSyncMsg(`+${books} books, +${albums} albums`);
-      if (books > 0 || albums > 0) fetchEntries();
+      setSyncMsg(`+${books} book${books === 1 ? "" : "s"} added`);
+      if (books > 0) fetchEntries();
     } catch {
       setSyncMsg("Sync failed");
     } finally {
