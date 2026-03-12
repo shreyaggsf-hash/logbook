@@ -17,10 +17,14 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 function Stars({ rating }: { rating: number | null }) {
   if (rating === null) return null;
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
   return (
     <span className="text-amber-400 text-sm tracking-tight">
-      {"★".repeat(rating)}
-      <span className="text-gray-200">{"★".repeat(5 - rating)}</span>
+      {"★".repeat(full)}
+      {half && "½"}
+      <span className="text-gray-200">{"★".repeat(empty)}</span>
     </span>
   );
 }

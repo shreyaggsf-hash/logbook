@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar, ChevronsUpDown } from "lucide-react";
+import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar, ChevronsUpDown, RefreshCw } from "lucide-react";
 import EntryForm from "@/components/EntryForm";
 import type { Entry, Category } from "@/types";
 
@@ -65,6 +65,8 @@ export default function HomePage() {
   const [editEntry, setEditEntry] = useState<Entry | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showDial, setShowDial] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -90,6 +92,23 @@ export default function HomePage() {
   }
 
   useEffect(() => { fetchEntries(); }, []);
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncMsg("");
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const data = await res.json();
+      const books = data.storygraph?.created?.length ?? 0;
+      setSyncMsg(`+${books} book${books === 1 ? "" : "s"} added`);
+      if (books > 0) fetchEntries();
+    } catch {
+      setSyncMsg("Sync failed");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(""), 4000);
+    }
+  }
 
   const monthEntries = useMemo(() => {
     if (month === null) return entries.filter((e) => e.date?.startsWith(`${year}`));
@@ -143,7 +162,7 @@ export default function HomePage() {
   return (
     <>
       {/* Year / Month header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 justify-between">
         {/* Year picker — span sizes to content, invisible select overlaid on top */}
         <div className="relative inline-flex items-center gap-1">
           <span className="text-3xl font-bold text-indigo-600 pointer-events-none">{year}</span>
@@ -174,6 +193,21 @@ export default function HomePage() {
               <option key={i} value={i + 1}>{name}</option>
             ))}
           </select>
+        </div>
+
+        {/* Sync button */}
+        <div className="flex flex-col items-end ml-auto">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-transform disabled:opacity-50"
+            aria-label="Sync from Storygraph and Spotify"
+          >
+            <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
+          </button>
+          {syncMsg && (
+            <span className="text-xs text-gray-500 mt-0.5 whitespace-nowrap">{syncMsg}</span>
+          )}
         </div>
       </div>
 
