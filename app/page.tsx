@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Plus, X, BookOpen, Film, Tv, Mic, Landmark, Calendar } from "lucide-react";
 import EntryCard from "@/components/EntryCard";
 import EntryForm from "@/components/EntryForm";
 import FilterBar, { Filters } from "@/components/FilterBar";
-import type { Entry } from "@/types";
+import type { Entry, Category } from "@/types";
+
+const DIAL_CATEGORIES: { name: Category; icon: React.ElementType }[] = [
+  { name: "Book", icon: BookOpen },
+  { name: "Movie", icon: Film },
+  { name: "TV Show", icon: Tv },
+  { name: "Podcast", icon: Mic },
+  { name: "Exhibit", icon: Landmark },
+  { name: "Event", icon: Calendar },
+];
 
 const DEFAULT_FILTERS: Filters = {
   search: "",
@@ -219,7 +229,7 @@ export default function HomePage() {
       {/* Speed dial backdrop */}
       {showDial && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setShowDial(false)}
         />
       )}
@@ -227,13 +237,16 @@ export default function HomePage() {
       {/* Speed dial category list */}
       {showDial && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
-          {["Book", "Movie", "TV Show", "Podcast", "Album", "Exhibit", "Event", "Other"].map((cat) => (
+          {DIAL_CATEGORIES.map(({ name, icon: Icon }) => (
             <button
-              key={cat}
-              onClick={() => openWithCategory(cat)}
-              className="px-5 py-2.5 bg-white text-gray-800 font-medium text-sm rounded-full shadow-lg border border-gray-100 active:scale-95 transition-transform whitespace-nowrap"
+              key={name}
+              onClick={() => openWithCategory(name)}
+              className="flex items-center gap-3 pl-2 pr-5 py-2 bg-white text-gray-800 font-medium text-sm rounded-full shadow-lg active:scale-95 transition-transform whitespace-nowrap"
             >
-              {cat}
+              <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center shrink-0">
+                <Icon size={15} className="text-white" />
+              </span>
+              {name}
             </button>
           ))}
         </div>
@@ -242,16 +255,16 @@ export default function HomePage() {
       {/* FAB — centered in bottom nav */}
       <button
         onClick={() => setShowDial((d) => !d)}
-        className={`fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-all z-50 ${showDial ? "rotate-45" : ""}`}
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
         aria-label="Add entry"
       >
-        +
+        {showDial ? <X size={30} strokeWidth={2.5} /> : <Plus size={30} strokeWidth={2.5} />}
       </button>
 
       {showForm && (
         <EntryForm
           entry={editEntry}
-          initialCategory={selectedCategory as import("@/types").Category ?? undefined}
+          initialCategory={selectedCategory as Category ?? undefined}
           onSave={handleSave}
           onClose={closeForm}
         />
