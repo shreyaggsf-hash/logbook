@@ -58,7 +58,6 @@ export async function GET(req: NextRequest) {
         { cache: "no-store" }
       );
       const data = await res.json();
-      console.log("[search] OMDb response:", JSON.stringify(data).slice(0, 200));
       type OmdbResult = { Title: string; Year: string; Poster: string };
       if (!data.Search) return NextResponse.json([]);
       const results = (data.Search as OmdbResult[]).slice(0, 6).map((d) => ({
