@@ -28,14 +28,14 @@ export async function GET(req: NextRequest) {
   try {
     if (category === "Book") {
       const res = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=6&fields=title,author_name,cover_i`,
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10&fields=title,author_name,cover_i`,
         { cache: "no-store" }
       );
       const data = await res.json();
       const results = (
         data.docs as { title: string; author_name?: string[]; cover_i?: number }[]
       )
-        .slice(0, 6)
+        .slice(0, 10)
         .map((d) => ({
           title: d.title,
           creator: d.author_name?.[0] ?? "",
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       const data = await res.json();
       type OmdbResult = { Title: string; Year: string; Poster: string };
       if (!data.Search) return NextResponse.json([]);
-      const results = (data.Search as OmdbResult[]).slice(0, 6).map((d) => ({
+      const results = (data.Search as OmdbResult[]).slice(0, 10).map((d) => ({
         title: d.Title,
         creator: "",
         subtitle: d.Year,
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
         const data = await res.json();
         const results = (data.results as ItunesItem[])
           .filter((d) => d.trackName)
-          .slice(0, 6)
+          .slice(0, 10)
           .map((d) => ({
             title: d.trackName!,
             creator: "",
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
         { cache: "no-store" }
       );
       const data: TvMazeShow[] = await res.json();
-      const results = data.slice(0, 6).map((item) => ({
+      const results = data.slice(0, 10).map((item) => ({
         title: item.show.name,
         creator: "",
         subtitle:
@@ -107,14 +107,14 @@ export async function GET(req: NextRequest) {
     if (category === "Podcast") {
       const url = episodeMode
         ? `https://itunes.apple.com/search?term=${encodeURIComponent(showName + " " + q)}&media=podcast&entity=podcastEpisode&limit=10`
-        : `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=podcast&limit=6`;
+        : `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=podcast&limit=10`;
       const res = await fetch(url, { cache: "no-store" });
       const data = await res.json();
 
       if (episodeMode) {
         const results = (data.results as ItunesItem[])
           .filter((d) => d.trackName)
-          .slice(0, 6)
+          .slice(0, 10)
           .map((d) => ({
             title: d.trackName!,
             creator: "",
@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
 
     if (category === "Album") {
       const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=6`,
+        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=10`,
         { cache: "no-store" }
       );
       const data = await res.json();

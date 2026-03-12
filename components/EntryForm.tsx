@@ -257,7 +257,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto max-h-72">
                 {suggestions.map((s, i) => (
                   <li key={i}>
                     <button
