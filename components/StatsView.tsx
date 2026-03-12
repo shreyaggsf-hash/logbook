@@ -199,7 +199,8 @@ export default function StatsView({ entries, year }: Props) {
                 <span className="text-sm flex-1 text-gray-900">{e.title}</span>
                 <span className="text-xs text-gray-400">{e.category}</span>
                 <span className="text-amber-400 text-sm">
-                  {"★".repeat(e.rating ?? 0)}
+                  {"★".repeat(Math.floor(e.rating ?? 0))}
+                  {(e.rating ?? 0) % 1 >= 0.5 ? "½" : ""}
                 </span>
               </li>
             ))}

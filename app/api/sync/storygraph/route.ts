@@ -4,24 +4,50 @@ import { getAllEntries, createEntry } from "@/lib/notion";
 interface StoryGraphBook {
   title: string;
   book_id: string;
+  rating: number | null;
 }
 
 function parseStorygraphBooks(html: string): StoryGraphBook[] {
   const books: StoryGraphBook[] = [];
   const seen = new Set<string>();
 
-  // Find all anchor tags inside div.book-title-author-and-series
-  // Structure: <div class="book-title-author-and-series"><p><a href="/books/SLUG">Title</a>
-  const bookDivRegex = /class="[^"]*book-title-author-and-series[^"]*"[\s\S]*?<a\s[^>]*href="\/books\/([^"?#\s]+)"[^>]*>([^<]+)<\/a>/g;
+  // Each book block starts with div.book-title-author-and-series.
+  // We capture from that class marker to the next occurrence of it (or end of string)
+  // to get the full per-book HTML block, then extract title and rating from it.
+  const blockRegex =
+    /class="[^"]*book-title-author-and-series[^"]*"([\s\S]*?)(?=class="[^"]*book-title-author-and-series|$)/g;
 
   let match;
-  while ((match = bookDivRegex.exec(html)) !== null) {
-    const book_id = match[1].trim();
-    const title = match[2].trim();
-    if (book_id && title && !seen.has(book_id)) {
-      seen.add(book_id);
-      books.push({ title, book_id });
+  while ((match = blockRegex.exec(html)) !== null) {
+    const block = match[1];
+
+    // Title + book_id from the first /books/ link
+    const linkMatch = block.match(/<a[^>]+href="\/books\/([^"?#\s]+)"[^>]*>([^<]+)<\/a>/);
+    if (!linkMatch) continue;
+
+    const book_id = linkMatch[1].trim();
+    const title = linkMatch[2].trim();
+    if (!book_id || !title || seen.has(book_id)) continue;
+    seen.add(book_id);
+
+    // Rating: try aria-label="X out of 5 stars" pattern first
+    let rating: number | null = null;
+    const ariaMatch = block.match(/aria-label="([\d.]+)\s+out\s+of\s+5\s+stars"/i);
+    if (ariaMatch) {
+      const val = parseFloat(ariaMatch[1]);
+      if (!isNaN(val) && val >= 0 && val <= 5) rating = val;
     }
+
+    // Fallback: look for a standalone decimal/integer rating value near a "star" context
+    if (rating === null) {
+      const ratingMatch = block.match(/["'\s>](5|4\.75|4\.5|4\.25|4|3\.75|3\.5|3\.25|3|2\.75|2\.5|2\.25|2|1\.75|1\.5|1\.25|1|0\.5)["'\s<]/);
+      if (ratingMatch) {
+        const val = parseFloat(ratingMatch[1]);
+        if (!isNaN(val)) rating = val;
+      }
+    }
+
+    books.push({ title, book_id, rating });
   }
 
   return books;
@@ -63,7 +89,7 @@ export async function POST() {
   try {
     const res = await fetch(`https://app.thestorygraph.com/books-read/${username}`, {
       headers: {
-        Cookie: `_storygraph_session=${cookie}`,
+        Cookie: `remember_user_token=${cookie}`,
         "User-Agent": "Mozilla/5.0 (compatible; logbook-sync/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
@@ -108,7 +134,7 @@ export async function POST() {
       title: book.title,
       category: "Book",
       date: null,
-      rating: null,
+      rating: book.rating,
       notes: "",
       creator: author,
       tags: [],
