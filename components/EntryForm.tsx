@@ -45,16 +45,17 @@ async function fetchSuggestions(
 
 interface Props {
   entry?: Entry | null;
+  initialCategory?: Category;
   onSave: (entry: Entry) => void;
   onClose: () => void;
 }
 
-export default function EntryForm({ entry, onSave, onClose }: Props) {
+export default function EntryForm({ entry, initialCategory, onSave, onClose }: Props) {
   const isEditing = !!entry;
 
   const [form, setForm] = useState({
     title: "",
-    category: "Book" as Category,
+    category: (initialCategory ?? "Book") as Category,
     date: new Date().toISOString().slice(0, 10),
     rating: "" as string,
     notes: "",

@@ -21,6 +21,8 @@ export default function HomePage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [showForm, setShowForm] = useState(false);
   const [editEntry, setEditEntry] = useState<Entry | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showDial, setShowDial] = useState(false);
 
   async function fetchEntries() {
     setLoading(true);
@@ -123,6 +125,13 @@ export default function HomePage() {
   function closeForm() {
     setShowForm(false);
     setEditEntry(null);
+    setSelectedCategory(null);
+  }
+
+  function openWithCategory(cat: string) {
+    setSelectedCategory(cat);
+    setShowDial(false);
+    setShowForm(true);
   }
 
   return (
@@ -207,10 +216,33 @@ export default function HomePage() {
         </>
       )}
 
+      {/* Speed dial backdrop */}
+      {showDial && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowDial(false)}
+        />
+      )}
+
+      {/* Speed dial category list */}
+      {showDial && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+          {["Book", "Movie", "TV Show", "Podcast", "Album", "Exhibit", "Event", "Other"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => openWithCategory(cat)}
+              className="px-5 py-2.5 bg-white text-gray-800 font-medium text-sm rounded-full shadow-lg border border-gray-100 active:scale-95 transition-transform whitespace-nowrap"
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* FAB — centered in bottom nav */}
       <button
-        onClick={() => setShowForm(true)}
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center text-3xl hover:bg-indigo-700 active:scale-95 transition-transform z-50"
+        onClick={() => setShowDial((d) => !d)}
+        className={`fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-all z-50 ${showDial ? "rotate-45" : ""}`}
         aria-label="Add entry"
       >
         +
@@ -219,6 +251,7 @@ export default function HomePage() {
       {showForm && (
         <EntryForm
           entry={editEntry}
+          initialCategory={selectedCategory as import("@/types").Category ?? undefined}
           onSave={handleSave}
           onClose={closeForm}
         />
