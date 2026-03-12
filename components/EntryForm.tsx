@@ -71,6 +71,7 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
   const [isEpisode, setIsEpisode] = useState(false);
   const [showName, setShowName] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justPickedRef = useRef(false);
 
   useEffect(() => {
     if (entry) {
@@ -103,6 +104,10 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
       return;
     }
     debounceRef.current = setTimeout(async () => {
+      if (justPickedRef.current) {
+        justPickedRef.current = false;
+        return;
+      }
       const results = await fetchSuggestions(form.title, form.category, isEpisode, showName);
       setSuggestions(results);
       if (results.length > 0) setShowSuggestions(true);
@@ -117,6 +122,7 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
   }
 
   function pickSuggestion(s: Suggestion) {
+    justPickedRef.current = true;
     setForm((prev) => ({
       ...prev,
       title: s.title,
@@ -124,8 +130,8 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
     }));
     setSuggestions([]);
     setShowSuggestions(false);
-    // If this is a show-level pick for an episode-capable category, reset episode mode
-    if (EPISODE_CATEGORIES.includes(form.category)) {
+    // Show-level pick: lock the show name for episode mode toggle
+    if (!isEpisode && EPISODE_CATEGORIES.includes(form.category)) {
       setIsEpisode(false);
       setShowName(s.title);
     }
