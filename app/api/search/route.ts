@@ -49,16 +49,19 @@ export async function GET(req: NextRequest) {
 
     if (category === "Movie") {
       const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&limit=6`,
+        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&entity=movie&limit=8`,
         { cache: "no-store" }
       );
       const data = await res.json();
-      const results = (data.results as ItunesItem[]).map((d) => ({
-        title: d.trackName ?? "",
-        creator: d.artistName ?? "",
-        subtitle: undefined,
-        image: d.artworkUrl100 ?? null,
-      }));
+      const results = (data.results as ItunesItem[])
+        .filter((d) => d.trackName)
+        .slice(0, 6)
+        .map((d) => ({
+          title: d.trackName!,
+          creator: d.artistName ?? "",
+          subtitle: undefined,
+          image: d.artworkUrl100 ?? null,
+        }));
       return NextResponse.json(results);
     }
 
