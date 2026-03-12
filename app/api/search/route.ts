@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
   try {
     if (category === "Book") {
       const res = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=6&fields=title,author_name,cover_i`
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=6&fields=title,author_name,cover_i`,
+        { cache: "no-store" }
       );
       const data = await res.json();
       const results = (
@@ -48,13 +49,14 @@ export async function GET(req: NextRequest) {
 
     if (category === "Movie") {
       const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&limit=6`
+        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&limit=6`,
+        { cache: "no-store" }
       );
       const data = await res.json();
       const results = (data.results as ItunesItem[]).map((d) => ({
         title: d.trackName ?? "",
-        creator: "",
-        subtitle: d.artistName ?? "",
+        creator: d.artistName ?? "",
+        subtitle: undefined,
         image: d.artworkUrl100 ?? null,
       }));
       return NextResponse.json(results);
@@ -64,7 +66,8 @@ export async function GET(req: NextRequest) {
       if (episodeMode) {
         const term = showName ? `${showName} ${q}` : q;
         const res = await fetch(
-          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=tvShow&entity=tvEpisode&limit=10`
+          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=tvShow&entity=tvEpisode&limit=10`,
+          { cache: "no-store" }
         );
         const data = await res.json();
         const results = (data.results as ItunesItem[])
@@ -80,7 +83,8 @@ export async function GET(req: NextRequest) {
       }
 
       const res = await fetch(
-        `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`
+        `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`,
+        { cache: "no-store" }
       );
       const data: TvMazeShow[] = await res.json();
       const results = data.slice(0, 6).map((item) => ({
@@ -97,7 +101,7 @@ export async function GET(req: NextRequest) {
       const url = episodeMode
         ? `https://itunes.apple.com/search?term=${encodeURIComponent(showName + " " + q)}&media=podcast&entity=podcastEpisode&limit=10`
         : `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=podcast&limit=6`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       const data = await res.json();
 
       if (episodeMode) {
@@ -124,7 +128,8 @@ export async function GET(req: NextRequest) {
 
     if (category === "Album") {
       const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=6`
+        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=6`,
+        { cache: "no-store" }
       );
       const data = await res.json();
       const results = (data.results as ItunesItem[]).map((d) => ({
