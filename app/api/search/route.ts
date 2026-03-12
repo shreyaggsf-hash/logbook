@@ -48,24 +48,20 @@ export async function GET(req: NextRequest) {
     }
 
     if (category === "Movie") {
-      const tmdbKey = process.env.TMDB_API_KEY;
-      if (!tmdbKey) return NextResponse.json([]);
+      const omdbKey = process.env.OMDB_API_KEY;
+      if (!omdbKey) return NextResponse.json([]);
       const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`,
-        {
-          headers: { Authorization: `Bearer ${tmdbKey}` },
-          cache: "no-store",
-        }
+        `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&type=movie&apikey=${omdbKey}`,
+        { cache: "no-store" }
       );
       const data = await res.json();
-      type TmdbMovie = { title: string; release_date?: string; poster_path?: string | null };
-      const results = (data.results as TmdbMovie[]).slice(0, 6).map((d) => ({
-        title: d.title,
+      type OmdbResult = { Title: string; Year: string; Poster: string };
+      if (!data.Search) return NextResponse.json([]);
+      const results = (data.Search as OmdbResult[]).slice(0, 6).map((d) => ({
+        title: d.Title,
         creator: "",
-        subtitle: d.release_date ? d.release_date.slice(0, 4) : undefined,
-        image: d.poster_path
-          ? `https://image.tmdb.org/t/p/w92${d.poster_path}`
-          : null,
+        subtitle: d.Year,
+        image: d.Poster !== "N/A" ? d.Poster : null,
       }));
       return NextResponse.json(results);
     }
