@@ -4,7 +4,7 @@ import type {
   CreatePageParameters,
   UpdatePageParameters,
 } from "@notionhq/client/build/src/api-endpoints";
-import type { Entry, Category, Status } from "@/types";
+import type { Entry, Category } from "@/types";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const DATABASE_ID = process.env.NOTION_DATABASE_ID!;
@@ -56,7 +56,6 @@ function pageToEntry(page: PageObjectResponse): Entry {
     id: page.id,
     title: getTitle(page),
     category: getSelect(page, "Category") as Category,
-    status: getSelect(page, "Status") as Status,
     date: getDate(page, "Date"),
     rating: getNumber(page, "Rating"),
     notes: getRichText(page, "Notes"),
@@ -92,7 +91,6 @@ export async function getAllEntries(): Promise<Entry[]> {
 export async function createEntry(data: {
   title: string;
   category: Category;
-  status: Status;
   date: string | null;
   rating: number | null;
   notes: string;
@@ -102,7 +100,6 @@ export async function createEntry(data: {
   const properties: CreatePageParameters["properties"] = {
     Name: { title: [{ text: { content: data.title } }] },
     Category: { select: { name: data.category } },
-    Status: { select: { name: data.status } },
     Notes: { rich_text: [{ text: { content: data.notes } }] },
     Creator: { rich_text: [{ text: { content: data.creator } }] },
     Tags: { multi_select: data.tags.map((t) => ({ name: t.trim() })) },
@@ -128,7 +125,6 @@ export async function updateEntry(
   data: Partial<{
     title: string;
     category: Category;
-    status: Status;
     date: string | null;
     rating: number | null;
     notes: string;
@@ -142,8 +138,6 @@ export async function updateEntry(
     properties["Name"] = { title: [{ text: { content: data.title } }] };
   if (data.category !== undefined)
     properties["Category"] = { select: { name: data.category } };
-  if (data.status !== undefined)
-    properties["Status"] = { select: { name: data.status } };
   if (data.notes !== undefined)
     properties["Notes"] = {
       rich_text: [{ text: { content: data.notes } }],

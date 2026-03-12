@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllEntries, createEntry } from "@/lib/notion";
-import type { Category, Status } from "@/types";
+import type { Category } from "@/types";
 
 export async function GET() {
   try {
@@ -15,16 +15,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, category, status, date, rating, notes, creator, tags } = body;
+    const { title, category, date, rating, notes, creator, tags } = body;
 
-    if (!title || !category || !status) {
-      return NextResponse.json({ error: "title, category, and status are required" }, { status: 400 });
+    if (!title || !category) {
+      return NextResponse.json({ error: "title and category are required" }, { status: 400 });
     }
 
     const entry = await createEntry({
       title,
       category: category as Category,
-      status: status as Status,
       date: date || null,
       rating: rating ?? null,
       notes: notes || "",

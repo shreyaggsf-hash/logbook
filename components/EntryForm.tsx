@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import type { Entry, Category, Status } from "@/types";
+import type { Entry, Category } from "@/types";
 
 const CATEGORIES: Category[] = [
   "Book",
@@ -14,8 +14,6 @@ const CATEGORIES: Category[] = [
   "Album",
   "Other",
 ];
-
-const STATUSES: Status[] = ["Completed", "In Progress", "Abandoned", "Want to"];
 
 const SEARCHABLE: Category[] = ["Book", "Movie", "TV Show", "Podcast", "Album"];
 const EPISODE_CATEGORIES: Category[] = ["TV Show", "Podcast"];
@@ -57,7 +55,6 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
   const [form, setForm] = useState({
     title: "",
     category: "Book" as Category,
-    status: "Completed" as Status,
     date: new Date().toISOString().slice(0, 10),
     rating: "" as string,
     notes: "",
@@ -78,7 +75,6 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
       setForm({
         title: entry.title,
         category: entry.category,
-        status: entry.status,
         date: entry.date ?? "",
         rating: entry.rating?.toString() ?? "",
         notes: entry.notes,
@@ -167,7 +163,6 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
     const payload = {
       title: finalTitle,
       category: form.category,
-      status: form.status,
       date: form.date || null,
       rating: form.rating ? Number(form.rating) : null,
       notes: form.notes.trim(),
@@ -302,39 +297,23 @@ export default function EntryForm({ entry, onSave, onClose }: Props) {
             </label>
           )}
 
-          {/* Category + Status */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                value={form.category}
-                onChange={(e) => {
-                  set("category", e.target.value);
-                  setSuggestions([]);
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {STATUSES.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </div>
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={form.category}
+              onChange={(e) => {
+                set("category", e.target.value);
+                setSuggestions([]);
+              }}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* Creator */}

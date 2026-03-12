@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateEntry, deleteEntry } from "@/lib/notion";
-import type { Category, Status } from "@/types";
+import type { Category } from "@/types";
 
 export async function PATCH(
   req: NextRequest,
@@ -9,12 +9,11 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { title, category, status, date, rating, notes, creator, tags } = body;
+    const { title, category, date, rating, notes, creator, tags } = body;
 
     const entry = await updateEntry(id, {
       ...(title !== undefined && { title }),
       ...(category !== undefined && { category: category as Category }),
-      ...(status !== undefined && { status: status as Status }),
       ...(date !== undefined && { date }),
       ...(rating !== undefined && { rating }),
       ...(notes !== undefined && { notes }),

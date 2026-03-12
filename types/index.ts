@@ -8,13 +8,10 @@ export type Category =
   | "Album"
   | "Other";
 
-export type Status = "Completed" | "In Progress" | "Abandoned" | "Want to";
-
 export interface Entry {
   id: string;
   title: string;
   category: Category;
-  status: Status;
   date: string | null; // ISO date string
   rating: number | null; // 1–5
   notes: string;
@@ -25,7 +22,6 @@ export interface Entry {
 export interface EntryFormData {
   title: string;
   category: Category;
-  status: Status;
   date: string;
   rating: number | null;
   notes: string;

@@ -10,7 +10,6 @@ import type { Entry } from "@/types";
 const DEFAULT_FILTERS: Filters = {
   search: "",
   category: "",
-  status: "",
   year: "",
   rating: "",
   sort: "date-desc",
@@ -66,9 +65,6 @@ export default function HomePage() {
     }
     if (filters.category) {
       result = result.filter((e) => e.category === filters.category);
-    }
-    if (filters.status) {
-      result = result.filter((e) => e.status === filters.status);
     }
     if (filters.year) {
       result = result.filter((e) => e.date?.startsWith(filters.year));

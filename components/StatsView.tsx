@@ -40,8 +40,6 @@ export default function StatsView({ entries, year }: Props) {
     ? entries.filter((e) => e.date?.startsWith(year))
     : entries;
 
-  const completed = filtered.filter((e) => e.status === "Completed");
-
   // By category
   const byCategoryMap: Record<string, number> = {};
   for (const e of filtered) {
@@ -69,14 +67,14 @@ export default function StatsView({ entries, year }: Props) {
     }));
 
   // Average rating
-  const rated = completed.filter((e) => e.rating !== null);
+  const rated = filtered.filter((e) => e.rating !== null);
   const avgRating =
     rated.length > 0
       ? (rated.reduce((s, e) => s + e.rating!, 0) / rated.length).toFixed(1)
       : null;
 
   // Top rated
-  const topRated = [...completed]
+  const topRated = [...filtered]
     .filter((e) => e.rating !== null)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
@@ -92,9 +90,8 @@ export default function StatsView({ entries, year }: Props) {
   return (
     <div className="space-y-10">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <StatCard label="Total logged" value={filtered.length} />
-        <StatCard label="Completed" value={completed.length} />
         <StatCard
           label="Avg rating"
           value={avgRating ? `${avgRating} / 5` : "—"}

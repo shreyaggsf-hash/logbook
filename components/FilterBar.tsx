@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import type { Category, Status } from "@/types";
+import type { Category } from "@/types";
 
 const CATEGORIES: Category[] = [
   "Book",
@@ -14,12 +14,9 @@ const CATEGORIES: Category[] = [
   "Other",
 ];
 
-const STATUSES: Status[] = ["Completed", "In Progress", "Abandoned", "Want to"];
-
 export interface Filters {
   search: string;
   category: Category | "";
-  status: Status | "";
   year: string;
   rating: string;
   sort: "date-desc" | "date-asc" | "rating-desc" | "title-asc";
@@ -39,7 +36,6 @@ export default function FilterBar({ filters, availableYears, onChange }: Props) 
   const hasActiveFilters =
     filters.search ||
     filters.category ||
-    filters.status ||
     filters.year ||
     filters.rating;
 
@@ -78,17 +74,6 @@ export default function FilterBar({ filters, availableYears, onChange }: Props) 
           <option value="">All categories</option>
           {CATEGORIES.map((c) => (
             <option key={c}>{c}</option>
-          ))}
-        </select>
-
-        <select
-          value={filters.status}
-          onChange={(e) => set("status", e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-        >
-          <option value="">All statuses</option>
-          {STATUSES.map((s) => (
-            <option key={s}>{s}</option>
           ))}
         </select>
 
@@ -139,7 +124,6 @@ export default function FilterBar({ filters, availableYears, onChange }: Props) 
               onChange({
                 search: "",
                 category: "",
-                status: "",
                 year: "",
                 rating: "",
                 sort: filters.sort,

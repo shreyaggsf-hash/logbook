@@ -15,13 +15,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Other: "bg-gray-100 text-gray-700",
 };
 
-const STATUS_DOT: Record<string, string> = {
-  Completed: "bg-green-400",
-  "In Progress": "bg-yellow-400",
-  Abandoned: "bg-red-400",
-  "Want to": "bg-gray-300",
-};
-
 function Stars({ rating }: { rating: number | null }) {
   if (rating === null) return null;
   return (
@@ -43,7 +36,6 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
 
   const categoryColor =
     CATEGORY_COLORS[entry.category] ?? "bg-gray-100 text-gray-700";
-  const statusDot = STATUS_DOT[entry.status] ?? "bg-gray-300";
 
   const formattedDate = entry.date
     ? new Date(entry.date + "T00:00:00").toLocaleDateString("en-GB", {
@@ -62,10 +54,6 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
               className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${categoryColor}`}
             >
               {entry.category}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-gray-500">
-              <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
-              {entry.status}
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 truncate">{entry.title}</h3>
