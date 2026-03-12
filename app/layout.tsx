@@ -20,11 +20,11 @@ export default function RootLayout({
           <main className="flex-1 px-4 pt-6 pb-24">{children}</main>
 
           {/* Bottom tab bar */}
-          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-indigo-600">
             <div className="max-w-sm mx-auto flex items-center">
               <Link
                 href="/"
-                className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
+                className="flex-1 flex flex-col items-center gap-1 py-3 text-white/80 hover:text-white transition-colors"
               >
                 <BookOpen size={22} />
                 <span className="text-xs font-medium">Logbook</span>
@@ -33,7 +33,7 @@ export default function RootLayout({
               <div className="w-20" />
               <Link
                 href="/stats"
-                className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-500 hover:text-indigo-600 transition-colors"
+                className="flex-1 flex flex-col items-center gap-1 py-3 text-white/80 hover:text-white transition-colors"
               >
                 <BarChart2 size={22} />
                 <span className="text-xs font-medium">Stats</span>

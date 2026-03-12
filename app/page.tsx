@@ -257,7 +257,7 @@ export default function HomePage() {
       {/* FAB — centered in bottom nav */}
       <button
         onClick={() => setShowDial((d) => !d)}
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-white border-4 border-indigo-600 text-indigo-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
         aria-label="Add entry"
       >
         {showDial ? <X size={30} strokeWidth={2.5} /> : <Plus size={30} strokeWidth={2.5} />}
