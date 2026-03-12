@@ -49,12 +49,16 @@ export async function GET(req: NextRequest) {
 
     if (category === "Movie") {
       const omdbKey = process.env.OMDB_API_KEY;
-      if (!omdbKey) return NextResponse.json([]);
+      if (!omdbKey) {
+        console.error("[search] OMDB_API_KEY is not set");
+        return NextResponse.json([]);
+      }
       const res = await fetch(
         `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&type=movie&apikey=${omdbKey}`,
         { cache: "no-store" }
       );
       const data = await res.json();
+      console.log("[search] OMDb response:", JSON.stringify(data).slice(0, 200));
       type OmdbResult = { Title: string; Year: string; Poster: string };
       if (!data.Search) return NextResponse.json([]);
       const results = (data.Search as OmdbResult[]).slice(0, 6).map((d) => ({
