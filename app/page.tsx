@@ -236,16 +236,16 @@ export default function HomePage() {
 
       {/* Speed dial category list */}
       {showDial && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-slide-up">
+        <div className="fixed bottom-24 left-0 right-0 z-50 px-4 animate-slide-up">
           <div className="grid grid-cols-2 gap-2">
             {DIAL_CATEGORIES.map(({ name, icon: Icon }) => (
               <button
                 key={name}
                 onClick={() => openWithCategory(name)}
-                className="flex flex-col items-center gap-2 w-32 py-3 bg-white text-gray-800 font-medium text-sm rounded-2xl shadow-lg active:scale-95 transition-transform"
+                className="flex items-center gap-3 px-4 py-3 bg-white text-gray-800 font-medium text-sm rounded-xl shadow-md active:scale-95 transition-transform"
               >
-                <span className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <Icon size={18} className="text-white" />
+                <span className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0">
+                  <Icon size={15} className="text-white" />
                 </span>
                 {name}
               </button>
