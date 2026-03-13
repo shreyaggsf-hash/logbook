@@ -276,9 +276,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
       <div className="bg-[#F7F2EC] rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto animate-sheet-slide-up">
         {/* Category icon header — icon only, no switcher */}
-        <div className="flex flex-col items-center pt-7 pb-2">
-          <CategoryIcon size={48} color="#6B1A26" strokeWidth={1.5} />
-          <span className="mt-1.5 text-sm font-medium text-[#6B1A26]">{form.category}</span>
+        <div className="flex flex-col items-center pt-5 pb-1">
+          <CategoryIcon size={52} color="#6B1A26" strokeWidth={2} />
+          <span className="mt-1 text-sm font-bold text-[#6B1A26]">{form.category}</span>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
@@ -407,7 +407,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
           </div>
 
           {/* Date + Rating — date gets more space, rating is compact */}
-          <div className="grid grid-cols-[55%_45%] gap-3 items-start">
+          <div className="grid grid-cols-[3fr_2fr] gap-3 items-start">
             <div>
               <label className={labelCls}>Date Consumed</label>
               <input
