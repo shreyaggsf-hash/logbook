@@ -165,8 +165,8 @@ export default function HomePage() {
       <div className="flex items-center gap-3 mb-6 justify-between">
         {/* Year picker — span sizes to content, invisible select overlaid on top */}
         <div className="relative inline-flex items-center gap-1">
-          <span className="text-3xl font-bold text-indigo-600 pointer-events-none">{year}</span>
-          <ChevronsUpDown size={13} className="text-indigo-400 shrink-0 pointer-events-none" />
+          <span className="text-3xl font-bold text-[#6B1A26] pointer-events-none">{year}</span>
+          <ChevronsUpDown size={13} className="text-[#6B1A26] shrink-0 pointer-events-none" />
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
@@ -200,7 +200,7 @@ export default function HomePage() {
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-transform disabled:opacity-50"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-[#6B1A26] hover:bg-[#F0E5E8] active:scale-95 transition-transform disabled:opacity-50"
             aria-label="Sync from Storygraph and Spotify"
           >
             <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
@@ -226,7 +226,7 @@ export default function HomePage() {
               <button
                 key={name}
                 onClick={() => openWithCategory(name)}
-                className="bg-indigo-600 text-white rounded-xl py-3 px-2 text-sm font-semibold text-center active:scale-95 transition-transform"
+                className="bg-[#6B1A26] text-white rounded-xl py-3 px-2 text-sm font-semibold text-center active:scale-95 transition-transform"
               >
                 {count} {count === 1 ? singular : plural}
               </button>
@@ -251,8 +251,8 @@ export default function HomePage() {
             const catEntries = monthEntries.filter((e) => e.category === name);
             if (catEntries.length === 0) return null;
             return (
-              <div key={name} className="bg-gray-100 rounded-2xl p-4">
-                <h2 className="text-base font-bold text-indigo-600 mb-3">{plural}</h2>
+              <div key={name} className="bg-[#E5DFD5] rounded-2xl p-4">
+                <h2 className="text-base font-bold text-[#6B1A26] mb-3">{plural}</h2>
                 <div className="overflow-x-auto">
                   <div className="flex gap-3 pb-1">
                     {catEntries.map((entry) => (
@@ -298,7 +298,7 @@ export default function HomePage() {
                 onClick={() => openWithCategory(name)}
                 className="flex items-center gap-3 px-4 py-3 bg-white text-gray-800 font-medium text-sm rounded-xl shadow-md active:scale-95 transition-transform"
               >
-                <span className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0">
+                <span className="w-8 h-8 rounded-full bg-[#6B1A26] flex items-center justify-center shrink-0">
                   <Icon size={15} className="text-white" />
                 </span>
                 {name}
@@ -311,7 +311,7 @@ export default function HomePage() {
       {/* FAB */}
       <button
         onClick={() => setShowDial((d) => !d)}
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-white border-4 border-indigo-600 text-indigo-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-16 h-16 bg-white border-4 border-[#6B1A26] text-[#6B1A26] rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform z-50"
         aria-label="Add entry"
       >
         {showDial ? <X size={30} strokeWidth={2.5} /> : <Plus size={30} strokeWidth={2.5} />}

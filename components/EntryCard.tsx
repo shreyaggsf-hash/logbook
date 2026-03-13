@@ -50,7 +50,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
     : null;
 
   return (
-    <div className="group bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+    <div className="group bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -69,7 +69,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
         <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onEdit(entry)}
-            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-[#6B1A26] hover:bg-[#F0E5E8] rounded-lg transition-colors"
             title="Edit"
           >
             <Pencil size={14} />

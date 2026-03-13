@@ -15,12 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 min-h-screen font-sans antialiased">
+      <body className="bg-[#F2EDE3] min-h-screen font-sans antialiased">
         <div className="max-w-sm mx-auto min-h-screen flex flex-col">
           <main className="flex-1 px-4 pt-6 pb-24">{children}</main>
 
           {/* Bottom tab bar */}
-          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-indigo-600">
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#6B1A26]">
             <div className="max-w-sm mx-auto flex items-center">
               <Link
                 href="/"

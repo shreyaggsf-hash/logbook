@@ -26,7 +26,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const PIE_COLORS = [
-  "#6366f1", "#f59e0b", "#3b82f6", "#10b981",
+  "#6B1A26", "#f59e0b", "#3b82f6", "#10b981",
   "#ec4899", "#f97316", "#8b5cf6", "#06b6d4",
 ];
 
@@ -148,7 +148,7 @@ export default function StatsView({ entries, year }: Props) {
                 <span className="text-sm text-gray-700 flex-1">{c.name}</span>
                 <div className="flex items-center gap-2">
                   <div
-                    className="h-2 rounded-full bg-indigo-200"
+                    className="h-2 rounded-full bg-[#C4939A]"
                     style={{
                       width: `${Math.round(
                         (c.value / filtered.length) * 120
@@ -177,7 +177,7 @@ export default function StatsView({ entries, year }: Props) {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#6B1A26" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -219,8 +219,8 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-      <div className="text-2xl font-bold text-indigo-600">{value}</div>
+    <div className="bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] p-4 text-center">
+      <div className="text-2xl font-bold text-[#6B1A26]">{value}</div>
       <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
   );
