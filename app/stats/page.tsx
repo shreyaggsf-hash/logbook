@@ -46,7 +46,7 @@ export default function StatsPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="border border-[#E5DFD5] rounded-xl px-3 py-2 text-sm bg-[#FAF7F2] focus:outline-none focus:ring-2 focus:ring-[#6B1A26]"
           >
             <option value="">All time</option>
             {availableYears.map((y) => (
@@ -60,10 +60,10 @@ export default function StatsPage() {
         <div className="space-y-6 animate-pulse">
           <div className="grid grid-cols-3 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 h-24" />
+              <div key={i} className="bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] h-24" />
             ))}
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 h-64" />
+          <div className="bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] h-64" />
         </div>
       )}
 
