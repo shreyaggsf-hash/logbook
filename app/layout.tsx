@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { Lora } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { BookOpen, BarChart2 } from "lucide-react";
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+});
 
 export const metadata: Metadata = {
   title: "Culture Logbook",
@@ -15,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#F2EDE3] min-h-screen font-sans antialiased">
+      <body className={`${lora.className} bg-[#F2EDE3] min-h-screen antialiased`}>
         <div className="max-w-sm mx-auto min-h-screen flex flex-col">
           <main className="flex-1 px-4 pt-6 pb-24">{children}</main>
 
