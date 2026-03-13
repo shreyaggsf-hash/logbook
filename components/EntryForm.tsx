@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Trash2 } from "lucide-react";
+import {
+  X,
+  Trash2,
+  BookOpen,
+  Film,
+  Tv,
+  Mic2,
+  Landmark,
+  CalendarDays,
+  Music,
+  LayoutGrid,
+} from "lucide-react";
 import type { Entry, Category } from "@/types";
 
 const CATEGORIES: Category[] = [
@@ -17,6 +28,20 @@ const CATEGORIES: Category[] = [
 
 const SEARCHABLE: Category[] = ["Book", "Movie", "TV Show", "Podcast", "Album"];
 const EPISODE_CATEGORIES: Category[] = ["TV Show", "Podcast"];
+
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  Book: BookOpen,
+  Movie: Film,
+  "TV Show": Tv,
+  Podcast: Mic2,
+  Exhibit: Landmark,
+  Event: CalendarDays,
+  Album: Music,
+  Other: LayoutGrid,
+};
+
+const WHOLE_OPTIONS = ["0", "1", "2", "3", "4", "5"];
+const DEC_OPTIONS = ["00", "25", "50", "75"];
 
 interface Suggestion {
   title: string;
@@ -43,6 +68,14 @@ async function fetchSuggestions(
   }
 }
 
+function parseRating(r: number | null | undefined): { whole: string; dec: string } {
+  if (r == null) return { whole: "", dec: "00" };
+  const whole = Math.floor(r).toString();
+  const frac = Math.round((r % 1) * 100);
+  const dec = frac === 0 ? "00" : frac.toString().padStart(2, "0");
+  return { whole, dec };
+}
+
 interface Props {
   entry?: Entry | null;
   initialCategory?: Category;
@@ -58,11 +91,12 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     title: "",
     category: (initialCategory ?? "Book") as Category,
     date: new Date().toISOString().slice(0, 10),
-    rating: "" as string,
     notes: "",
     creator: "",
     tags: "",
   });
+  const [ratingWhole, setRatingWhole] = useState("");
+  const [ratingDec, setRatingDec] = useState("00");
   const [imageUrl, setImageUrl] = useState(entry?.image ?? "");
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -76,14 +110,19 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
   const [showName, setShowName] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const justPickedRef = useRef(false);
+  // Only show autocomplete when the user is actively typing — not on initial form population
+  const userTypedRef = useRef(false);
 
   useEffect(() => {
+    userTypedRef.current = false;
     if (entry) {
+      const { whole, dec } = parseRating(entry.rating);
+      setRatingWhole(whole);
+      setRatingDec(dec);
       setForm({
         title: entry.title,
         category: entry.category,
         date: entry.date ?? "",
-        rating: entry.rating?.toString() ?? "",
         notes: entry.notes,
         creator: entry.creator,
         tags: entry.tags.join(", "),
@@ -91,7 +130,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     }
   }, [entry]);
 
-  // Reset episode mode when category changes away from TV Show / Podcast
   useEffect(() => {
     if (!EPISODE_CATEGORIES.includes(form.category)) {
       setIsEpisode(false);
@@ -118,10 +156,10 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     }, 600);
   }
 
-  // Debounced suggestion fetch
+  // Debounced suggestion fetch — only runs when user has actively typed
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (form.title.length < 2) {
+    if (form.title.length < 2 || !userTypedRef.current) {
       setSuggestions([]);
       return;
     }
@@ -145,6 +183,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
 
   function pickSuggestion(s: Suggestion) {
     justPickedRef.current = true;
+    userTypedRef.current = false;
     if (s.image) setImageUrl(s.image);
     setForm((prev) => ({
       ...prev,
@@ -153,7 +192,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     }));
     setSuggestions([]);
     setShowSuggestions(false);
-    // Show-level pick: lock the show name for episode mode toggle
     if (!isEpisode && EPISODE_CATEGORIES.includes(form.category)) {
       setIsEpisode(false);
       setShowName(s.title);
@@ -163,11 +201,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
   function toggleEpisode(checked: boolean) {
     setIsEpisode(checked);
     if (checked) {
-      // Lock show name, clear title for episode input
       setShowName(form.title || showName);
       setForm((prev) => ({ ...prev, title: "" }));
     } else {
-      // Restore show name to title field
       setForm((prev) => ({ ...prev, title: showName }));
     }
     setSuggestions([]);
@@ -187,11 +223,14 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
         ? `${showName} – ${form.title.trim()}`
         : form.title.trim();
 
+    const ratingNum =
+      ratingWhole === "" ? null : parseFloat(`${ratingWhole}.${ratingDec}`);
+
     const payload = {
       title: finalTitle,
       category: form.category,
       date: form.date || null,
-      rating: form.rating ? Number(form.rating) : null,
+      rating: ratingNum,
       notes: form.notes.trim(),
       creator: form.creator.trim(),
       tags: form.tags
@@ -220,45 +259,56 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     }
   }
 
+  const CategoryIcon = CATEGORY_ICONS[form.category] ?? LayoutGrid;
   const canPickEpisode =
     !isEditing && EPISODE_CATEGORIES.includes(form.category) && (showName || form.title);
+  const decOptions = ratingWhole === "5" ? ["00"] : DEC_OPTIONS;
+
+  const inputCls =
+    "w-full bg-[#EDEAE2] border-0 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30";
+  const labelCls = "block text-sm font-medium text-gray-800 mb-1.5";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-      <div className="bg-white rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {isEditing ? "Edit entry" : "Add entry"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+      <div className="bg-[#FAF7F2] rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto animate-sheet-slide-up">
+        {/* Category icon header */}
+        <div className="flex flex-col items-center pt-7 pb-1 px-6">
+          <CategoryIcon size={48} color="#6B1A26" strokeWidth={1.5} />
+          <select
+            value={form.category}
+            onChange={(e) => {
+              set("category", e.target.value);
+              setSuggestions([]);
+            }}
+            className="mt-2 text-xs text-[#6B1A26] font-medium bg-transparent border-0 focus:outline-none cursor-pointer"
           >
-            <X size={20} />
-          </button>
+            {CATEGORIES.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
           {/* Show name lock (episode mode) */}
           {isEpisode && showName && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg text-sm">
-              <span className="text-indigo-400 font-medium shrink-0">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#6B1A26]/10 rounded-lg text-sm">
+              <span className="text-[#6B1A26] font-medium shrink-0">
                 {form.category === "Podcast" ? "Podcast" : "Show"}
               </span>
-              <span className="text-indigo-900 font-semibold truncate">{showName}</span>
+              <span className="text-[#3D1010] font-semibold truncate">{showName}</span>
               <button
                 type="button"
                 onClick={() => toggleEpisode(false)}
-                className="ml-auto text-indigo-300 hover:text-indigo-500 shrink-0"
+                className="ml-auto text-[#6B1A26]/50 hover:text-[#6B1A26] shrink-0"
               >
                 <X size={14} />
               </button>
             </div>
           )}
 
-          {/* Title / Episode title with autocomplete */}
+          {/* Title with autocomplete */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               {isEpisode ? "Episode title" : "Title"}{" "}
               <span className="text-red-500">*</span>
             </label>
@@ -266,17 +316,17 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               type="text"
               value={form.title}
               onChange={(e) => {
+                userTypedRef.current = true;
                 set("title", e.target.value);
-                setShowSuggestions(true);
               }}
-              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              onFocus={() => {
+                if (userTypedRef.current && suggestions.length > 0) setShowSuggestions(true);
+              }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder={
-                isEpisode
-                  ? "Search for an episode..."
-                  : "e.g. The Bear, Normal People, Dune..."
+                isEpisode ? "Search for an episode..." : "e.g. The Autumn Throne..."
               }
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputCls}
             />
             {showSuggestions && suggestions.length > 0 && (
               <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto max-h-72">
@@ -285,7 +335,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                     <button
                       type="button"
                       onMouseDown={() => pickSuggestion(s)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors flex items-center gap-3"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-[#6B1A26]/5 transition-colors flex items-center gap-3"
                     >
                       {s.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -312,10 +362,10 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             )}
           </div>
 
-          {/* Exhibit URL → OG image fetch */}
+          {/* Exhibit URL */}
           {form.category === "Exhibit" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={labelCls}>
                 Exhibition link{" "}
                 <span className="text-gray-400 font-normal">(paste URL to auto-fill image)</span>
               </label>
@@ -325,7 +375,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                   value={exhibitUrl}
                   onChange={(e) => handleExhibitUrlChange(e.target.value)}
                   placeholder="https://www.metmuseum.org/exhibitions/..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={inputCls}
                 />
                 {ogFetching && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
@@ -336,113 +386,104 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             </div>
           )}
 
-          {/* Episode toggle for TV Show / Podcast */}
+          {/* Episode toggle */}
           {canPickEpisode && (
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isEpisode}
                 onChange={(e) => toggleEpisode(e.target.checked)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="rounded border-gray-300 text-[#6B1A26] focus:ring-[#6B1A26]"
               />
               Log a specific episode
             </label>
           )}
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              value={form.category}
-              onChange={(e) => {
-                set("category", e.target.value);
-                setSuggestions([]);
-              }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
           {/* Creator */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               Creator{" "}
-              <span className="text-gray-400 font-normal">
-                (author / director / artist)
-              </span>
+              <span className="text-gray-400 font-normal">(author / director / artist)</span>
             </label>
             <input
               type="text"
               value={form.creator}
               onChange={(e) => set("creator", e.target.value)}
-              placeholder="e.g. Christopher Nolan"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g. Elizabeth Chadwick"
+              className={inputCls}
             />
           </div>
 
           {/* Date + Rating */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date consumed
-              </label>
+              <label className={labelCls}>Date Consumed</label>
               <input
                 type="date"
                 value={form.date}
                 onChange={(e) => set("date", e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rating (0.25–5)
-              </label>
-              <input
-                type="number"
-                min="0.25"
-                max="5"
-                step="0.25"
-                value={form.rating}
-                onChange={(e) => set("rating", e.target.value)}
-                placeholder="e.g. 4.25"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+              <label className={labelCls}>Rating (0.25–5)</label>
+              {/* Storygraph-style split dropdowns */}
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={ratingWhole}
+                  onChange={(e) => {
+                    setRatingWhole(e.target.value);
+                    if (e.target.value === "5") setRatingDec("00");
+                  }}
+                  className="flex-1 bg-[#EDEAE2] border-0 rounded-lg px-2 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30 appearance-none"
+                >
+                  <option value="">–</option>
+                  {WHOLE_OPTIONS.map((w) => (
+                    <option key={w} value={w}>
+                      {w}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-gray-500 font-bold text-xl leading-none select-none">·</span>
+                <select
+                  value={ratingDec}
+                  onChange={(e) => setRatingDec(e.target.value)}
+                  disabled={ratingWhole === ""}
+                  className="flex-1 bg-[#EDEAE2] border-0 rounded-lg px-2 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30 appearance-none disabled:opacity-40"
+                >
+                  {decOptions.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tags{" "}
-              <span className="text-gray-400 font-normal">
-                (comma-separated)
-              </span>
+            <label className={labelCls}>
+              Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
             </label>
             <input
               type="text"
               value={form.tags}
               onChange={(e) => set("tags", e.target.value)}
-              placeholder="e.g. sci-fi, thriller, 2024"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g. historical fiction"
+              className={inputCls}
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
+            <label className={labelCls}>Notes</label>
             <textarea
               value={form.notes}
               onChange={(e) => set("notes", e.target.value)}
               rows={3}
               placeholder="Thoughts, quotes, recommendations..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className={`${inputCls} resize-none`}
             />
           </div>
 
@@ -471,16 +512,16 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                  className="p-2 bg-[#EDEAE2] text-[#6B1A26] hover:bg-[#E0D8CE] rounded-lg transition-colors"
                   title="Delete entry"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={16} />
                 </button>
               )
             ) : (
               <span />
             )}
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <button
                 type="button"
                 onClick={onClose}
@@ -491,9 +532,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                className="px-5 py-2 bg-[#3D1A20] text-white text-sm font-medium rounded-lg hover:bg-[#4D2028] disabled:opacity-50 transition-colors"
               >
-                {saving ? "Saving..." : isEditing ? "Save" : "Add entry"}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

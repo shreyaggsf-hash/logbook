@@ -1,18 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  BookOpen,
+  Film,
+  Tv,
+  Mic2,
+  Landmark,
+  CalendarDays,
+  Music,
+  LayoutGrid,
+} from "lucide-react";
 import type { Entry } from "@/types";
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Book: "bg-amber-100 text-amber-800",
-  Movie: "bg-blue-100 text-blue-800",
-  "TV Show": "bg-purple-100 text-purple-800",
-  Podcast: "bg-green-100 text-green-800",
-  Exhibit: "bg-pink-100 text-pink-800",
-  Event: "bg-orange-100 text-orange-800",
-  Album: "bg-cyan-100 text-cyan-800",
-  Other: "bg-gray-100 text-gray-700",
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  Book: BookOpen,
+  Movie: Film,
+  "TV Show": Tv,
+  Podcast: Mic2,
+  Exhibit: Landmark,
+  Event: CalendarDays,
+  Album: Music,
+  Other: LayoutGrid,
 };
 
 function Stars({ rating }: { rating: number | null }) {
@@ -24,7 +35,7 @@ function Stars({ rating }: { rating: number | null }) {
     <span className="text-amber-400 text-sm tracking-tight">
       {"★".repeat(full)}
       {half && "½"}
-      <span className="text-gray-200">{"★".repeat(empty)}</span>
+      <span className="text-gray-300">{"★".repeat(empty)}</span>
     </span>
   );
 }
@@ -38,34 +49,20 @@ interface Props {
 export default function EntryCard({ entry, onEdit, onDelete }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const categoryColor =
-    CATEGORY_COLORS[entry.category] ?? "bg-gray-100 text-gray-700";
+  const CategoryIcon = CATEGORY_ICONS[entry.category] ?? LayoutGrid;
 
   const formattedDate = entry.date
-    ? new Date(entry.date + "T00:00:00").toLocaleDateString("en-GB", {
-        day: "numeric",
+    ? new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", {
         month: "short",
+        day: "numeric",
         year: "numeric",
       })
     : null;
 
   return (
     <div className="group bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span
-              className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${categoryColor}`}
-            >
-              {entry.category}
-            </span>
-          </div>
-          <h3 className="font-semibold text-gray-900 truncate">{entry.title}</h3>
-          {entry.creator && (
-            <p className="text-sm text-gray-500 truncate">{entry.creator}</p>
-          )}
-        </div>
-
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <CategoryIcon size={18} color="#6B1A26" strokeWidth={1.75} />
         <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onEdit(entry)}
@@ -101,6 +98,11 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
         </div>
       </div>
 
+      <h3 className="font-semibold text-gray-900 truncate">{entry.title}</h3>
+      {entry.creator && (
+        <p className="text-sm text-gray-500 truncate mt-0.5">{entry.creator}</p>
+      )}
+
       <div className="mt-2 flex items-center gap-3">
         <Stars rating={entry.rating} />
         {formattedDate && (
@@ -113,7 +115,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: Props) {
           {entry.tags.map((tag) => (
             <span
               key={tag}
-              className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-xs"
+              className="px-1.5 py-0.5 bg-[#EDEAE2] text-gray-500 rounded text-xs"
             >
               {tag}
             </span>
