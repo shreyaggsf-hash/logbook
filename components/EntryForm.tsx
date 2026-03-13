@@ -7,9 +7,9 @@ import {
   BookOpen,
   Film,
   Tv,
-  Mic2,
+  Mic,
   Landmark,
-  CalendarDays,
+  Calendar,
   Music,
   LayoutGrid,
 } from "lucide-react";
@@ -33,9 +33,9 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   Book: BookOpen,
   Movie: Film,
   "TV Show": Tv,
-  Podcast: Mic2,
+  Podcast: Mic,
   Exhibit: Landmark,
-  Event: CalendarDays,
+  Event: Calendar,
   Album: Music,
   Other: LayoutGrid,
 };
@@ -264,28 +264,21 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     !isEditing && EPISODE_CATEGORIES.includes(form.category) && (showName || form.title);
   const decOptions = ratingWhole === "5" ? ["00"] : DEC_OPTIONS;
 
+  // Shared styles
   const inputCls =
-    "w-full bg-[#EDEAE2] border-0 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30";
-  const labelCls = "block text-sm font-medium text-gray-800 mb-1.5";
+    "w-full bg-[#EAE6DE] rounded-lg px-3 py-2.5 text-sm text-[#2D1520] placeholder:text-[#9C8A8E] focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0";
+  const labelCls = "block text-sm font-semibold text-[#2D1520] mb-1.5";
+  const hintCls = "font-normal text-[#9C8A8E]";
+  const selectCls =
+    "bg-[#EAE6DE] rounded-lg py-2.5 text-sm text-[#2D1520] text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0 appearance-none";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-      <div className="bg-[#FAF7F2] rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto animate-sheet-slide-up">
-        {/* Category icon header */}
-        <div className="flex flex-col items-center pt-7 pb-1 px-6">
+      <div className="bg-[#F7F2EC] rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto animate-sheet-slide-up">
+        {/* Category icon header — icon only, no switcher */}
+        <div className="flex flex-col items-center pt-7 pb-2">
           <CategoryIcon size={48} color="#6B1A26" strokeWidth={1.5} />
-          <select
-            value={form.category}
-            onChange={(e) => {
-              set("category", e.target.value);
-              setSuggestions([]);
-            }}
-            className="mt-2 text-xs text-[#6B1A26] font-medium bg-transparent border-0 focus:outline-none cursor-pointer"
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          <span className="mt-1.5 text-sm font-medium text-[#6B1A26]">{form.category}</span>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
@@ -329,7 +322,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               className={inputCls}
             />
             {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto max-h-72">
+              <ul className="absolute z-10 mt-1 w-full bg-[#F7F2EC] border border-[#DDD8CF] rounded-lg shadow-lg overflow-y-auto max-h-72">
                 {suggestions.map((s, i) => (
                   <li key={i}>
                     <button
@@ -345,12 +338,12 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                           className="w-10 h-10 object-cover rounded flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0" />
+                        <div className="w-10 h-10 rounded bg-[#EAE6DE] flex-shrink-0" />
                       )}
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900 truncate">{s.title}</div>
+                        <div className="font-medium text-[#2D1520] truncate">{s.title}</div>
                         {(s.subtitle || s.creator) && (
-                          <div className="text-gray-400 text-xs truncate">
+                          <div className="text-[#9C8A8E] text-xs truncate">
                             {s.subtitle ?? s.creator}
                           </div>
                         )}
@@ -367,7 +360,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             <div>
               <label className={labelCls}>
                 Exhibition link{" "}
-                <span className="text-gray-400 font-normal">(paste URL to auto-fill image)</span>
+                <span className={hintCls}>(paste URL to auto-fill image)</span>
               </label>
               <div className="relative">
                 <input
@@ -378,7 +371,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                   className={inputCls}
                 />
                 {ogFetching && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9C8A8E]">
                     Fetching…
                   </span>
                 )}
@@ -388,12 +381,12 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
 
           {/* Episode toggle */}
           {canPickEpisode && (
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-sm text-[#6B1A26] cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isEpisode}
                 onChange={(e) => toggleEpisode(e.target.checked)}
-                className="rounded border-gray-300 text-[#6B1A26] focus:ring-[#6B1A26]"
+                className="rounded border-[#9C8A8E] text-[#6B1A26] focus:ring-[#6B1A26]"
               />
               Log a specific episode
             </label>
@@ -402,8 +395,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
           {/* Creator */}
           <div>
             <label className={labelCls}>
-              Creator{" "}
-              <span className="text-gray-400 font-normal">(author / director / artist)</span>
+              Creator <span className={hintCls}>(author / director / artist)</span>
             </label>
             <input
               type="text"
@@ -414,8 +406,8 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             />
           </div>
 
-          {/* Date + Rating */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Date + Rating — date gets more space, rating is compact */}
+          <div className="grid grid-cols-[55%_45%] gap-3 items-start">
             <div>
               <label className={labelCls}>Date Consumed</label>
               <input
@@ -427,36 +419,32 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             </div>
             <div>
               <label className={labelCls}>Rating (0.25–5)</label>
-              {/* Storygraph-style split dropdowns */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <select
                   value={ratingWhole}
                   onChange={(e) => {
                     setRatingWhole(e.target.value);
                     if (e.target.value === "5") setRatingDec("00");
                   }}
-                  className="flex-1 bg-[#EDEAE2] border-0 rounded-lg px-2 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30 appearance-none"
+                  className={`${selectCls} w-11`}
                 >
                   <option value="">–</option>
                   {WHOLE_OPTIONS.map((w) => (
-                    <option key={w} value={w}>
-                      {w}
-                    </option>
+                    <option key={w} value={w}>{w}</option>
                   ))}
                 </select>
-                <span className="text-gray-500 font-bold text-xl leading-none select-none">·</span>
+                <span className="text-[#9C8A8E] font-bold text-lg leading-none select-none">·</span>
                 <select
                   value={ratingDec}
                   onChange={(e) => setRatingDec(e.target.value)}
                   disabled={ratingWhole === ""}
-                  className="flex-1 bg-[#EDEAE2] border-0 rounded-lg px-2 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/30 appearance-none disabled:opacity-40"
+                  className={`${selectCls} w-11 disabled:opacity-40`}
                 >
                   {decOptions.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
+                <span className="text-base leading-none select-none">⭐</span>
               </div>
             </div>
           </div>
@@ -464,7 +452,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
           {/* Tags */}
           <div>
             <label className={labelCls}>
-              Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
+              Tags <span className={hintCls}>(comma-separated)</span>
             </label>
             <input
               type="text"
@@ -503,7 +491,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="text-xs text-gray-500 hover:text-gray-700"
+                    className="text-xs text-[#9C8A8E] hover:text-[#2D1520]"
                   >
                     Cancel
                   </button>
@@ -512,7 +500,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="p-2 bg-[#EDEAE2] text-[#6B1A26] hover:bg-[#E0D8CE] rounded-lg transition-colors"
+                  className="p-2 bg-[#EAE6DE] text-[#6B1A26] hover:bg-[#DDD8CF] rounded-lg transition-colors"
                   title="Delete entry"
                 >
                   <Trash2 size={16} />
@@ -525,14 +513,14 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-sm text-[#6B1A26] hover:text-[#2D1520] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2 bg-[#3D1A20] text-white text-sm font-medium rounded-lg hover:bg-[#4D2028] disabled:opacity-50 transition-colors"
+                className="px-5 py-2 bg-[#2D1520] text-white text-sm font-medium rounded-lg hover:bg-[#3D1A20] disabled:opacity-50 transition-colors"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
