@@ -406,61 +406,47 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             />
           </div>
 
-          {/* Date + Rating */}
-          <div className="flex gap-3 items-start">
-            <div className="flex-1 min-w-0">
-              <label className={labelCls}>Date Consumed</label>
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => set("date", e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div className="shrink-0">
-              <label className={labelCls}>Rating (0.25–5)</label>
-              <div className="flex items-center gap-1">
-                <select
-                  value={ratingWhole}
-                  onChange={(e) => {
-                    setRatingWhole(e.target.value);
-                    if (e.target.value === "5") setRatingDec("00");
-                  }}
-                  className={`${selectCls} w-11`}
-                >
-                  <option value="">–</option>
-                  {WHOLE_OPTIONS.map((w) => (
-                    <option key={w} value={w}>{w}</option>
-                  ))}
-                </select>
-                <span className="text-[#9C8A8E] font-bold text-lg leading-none select-none">·</span>
-                <select
-                  value={ratingDec}
-                  onChange={(e) => setRatingDec(e.target.value)}
-                  disabled={ratingWhole === ""}
-                  className={`${selectCls} w-11 disabled:opacity-40`}
-                >
-                  {decOptions.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                <span className="text-base leading-none select-none">⭐</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tags */}
+          {/* Date */}
           <div>
-            <label className={labelCls}>
-              Tags <span className={hintCls}>(comma-separated)</span>
-            </label>
+            <label className={labelCls}>Date Consumed</label>
             <input
-              type="text"
-              value={form.tags}
-              onChange={(e) => set("tags", e.target.value)}
-              placeholder="e.g. historical fiction"
+              type="date"
+              value={form.date}
+              onChange={(e) => set("date", e.target.value)}
               className={inputCls}
             />
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className={labelCls}>Rating (0.25–5)</label>
+            <div className="flex items-center gap-2">
+              <select
+                value={ratingWhole}
+                onChange={(e) => {
+                  setRatingWhole(e.target.value);
+                  if (e.target.value === "5") setRatingDec("00");
+                }}
+                className={`${selectCls} w-16`}
+              >
+                <option value="">–</option>
+                {WHOLE_OPTIONS.map((w) => (
+                  <option key={w} value={w}>{w}</option>
+                ))}
+              </select>
+              <span className="text-[#B09898] font-bold text-xl leading-none select-none">·</span>
+              <select
+                value={ratingDec}
+                onChange={(e) => setRatingDec(e.target.value)}
+                disabled={ratingWhole === ""}
+                className={`${selectCls} w-16 disabled:opacity-40`}
+              >
+                {decOptions.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <span className="text-lg leading-none select-none">⭐</span>
+            </div>
           </div>
 
           {/* Notes */}
