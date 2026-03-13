@@ -7,9 +7,9 @@ import {
   BookOpen,
   Film,
   Tv,
-  Mic2,
+  Mic,
   Landmark,
-  CalendarDays,
+  Calendar,
   Music,
   LayoutGrid,
 } from "lucide-react";
@@ -19,9 +19,9 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   Book: BookOpen,
   Movie: Film,
   "TV Show": Tv,
-  Podcast: Mic2,
+  Podcast: Mic,
   Exhibit: Landmark,
-  Event: CalendarDays,
+  Event: Calendar,
   Album: Music,
   Other: LayoutGrid,
 };
