@@ -12,3 +12,12 @@
 .animate-slide-up {
   animation: slide-up 0.18s ease-out forwards;
 }
+
+@keyframes sheet-slide-up {
+  from { transform: translateY(56px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.animate-sheet-slide-up {
+  animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
