@@ -266,11 +266,11 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
 
   // Shared styles
   const inputCls =
-    "w-full bg-[#EAE6DE] rounded-lg px-3 py-2.5 text-sm text-[#2D1520] placeholder:text-[#9C8A8E] focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0";
-  const labelCls = "block text-sm font-semibold text-[#2D1520] mb-1.5";
-  const hintCls = "font-normal text-[#9C8A8E]";
+    "w-full bg-[#EAE6DE] rounded-lg px-3 py-2.5 text-sm text-[#6B1A26] placeholder:text-[#B09898] focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0";
+  const labelCls = "block text-sm font-semibold text-[#6B1A26] mb-1.5";
+  const hintCls = "font-normal text-[#B09898]";
   const selectCls =
-    "bg-[#EAE6DE] rounded-lg py-2.5 text-sm text-[#2D1520] text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0 appearance-none";
+    "bg-[#EAE6DE] rounded-lg py-2.5 text-sm text-[#6B1A26] text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0 appearance-none";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
@@ -406,9 +406,9 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
             />
           </div>
 
-          {/* Date + Rating — date gets more space, rating is compact */}
-          <div className="grid grid-cols-[3fr_2fr] gap-3 items-start">
-            <div>
+          {/* Date + Rating */}
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 min-w-0">
               <label className={labelCls}>Date Consumed</label>
               <input
                 type="date"
@@ -417,7 +417,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 className={inputCls}
               />
             </div>
-            <div>
+            <div className="shrink-0">
               <label className={labelCls}>Rating (0.25–5)</label>
               <div className="flex items-center gap-1">
                 <select
@@ -520,7 +520,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2 bg-[#2D1520] text-white text-sm font-medium rounded-lg hover:bg-[#3D1A20] disabled:opacity-50 transition-colors"
+                className="px-5 py-2 bg-[#6B1A26] text-white text-sm font-medium rounded-lg hover:bg-[#5A1520] disabled:opacity-50 transition-colors"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
