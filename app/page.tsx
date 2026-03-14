@@ -507,7 +507,7 @@ export default function HomePage() {
 
       {/* ── Per-category cover rows ── */}
       {!loading && !error && (
-        <div className="mt-7">
+        <div className="mt-[18px]">
           {CATEGORIES.map(({ name, plural, Icon }, catIdx) => {
             const catEntries = periodEntries.filter((e) => e.category === name);
             if (catEntries.length === 0) return null;
@@ -520,7 +520,7 @@ export default function HomePage() {
             return (
               <div key={name}>
                 {catIdx > 0 && (
-                  <div className="h-px my-7" style={{ background: "var(--border)" }} />
+                  <div className="h-px my-[18px]" style={{ background: "var(--border)" }} />
                 )}
                 {/* Section header */}
                 <div className="flex items-baseline justify-between mb-3.5">
@@ -569,7 +569,7 @@ export default function HomePage() {
       {/* ── FAB ── */}
       <button
         onClick={() => setShowTypePicker((v) => !v)}
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[52px] h-[52px] rounded-full flex items-center justify-center active:scale-95 transition-transform z-50"
+        className="fixed bottom-[56px] left-1/2 -translate-x-1/2 w-[52px] h-[52px] rounded-full flex items-center justify-center active:scale-95 transition-transform z-50"
         style={{
           background: "var(--crimson)",
           boxShadow: "0 4px 16px rgba(107,26,26,0.4)",
