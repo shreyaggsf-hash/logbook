@@ -435,7 +435,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
 
           {/* Creator + Date side-by-side */}
           <div className="grid grid-cols-2 gap-2.5">
-            <div>
+            <div className="min-w-0">
               <label className={labelCls} style={labelStyle}>
                 {form.category === "Book" ? "Author" :
                  form.category === "Movie" || form.category === "TV Show" ? "Director" :
@@ -450,14 +450,14 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 style={{ ...inputStyle, fontSize: 13, padding: "10px 13px" }}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className={labelCls} style={labelStyle}>Date</label>
               <input
                 type="date"
                 value={form.date}
                 onChange={(e) => set("date", e.target.value)}
                 className={inputCls}
-                style={{ ...inputStyle, fontSize: 13, padding: "10px 13px" }}
+                style={{ ...inputStyle, fontSize: 13, padding: "10px 13px", minWidth: 0 }}
               />
             </div>
           </div>
@@ -509,11 +509,17 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px]" style={{ color: "var(--crimson)" }}>▾</span>
               </div>
               {ratingWhole !== "" && (
-                <div className="flex gap-0.5 ml-1">
+                <div className="flex gap-px ml-1">
                   {[1,2,3,4,5].map((i) => {
                     const val = parseFloat(`${ratingWhole}.${ratingDec}`);
                     return (
-                      <span key={i} style={{ fontSize: 14, opacity: i <= Math.round(val) ? 1 : 0.2 }}>⭐</span>
+                      <span
+                        key={i}
+                        className="text-[14px] leading-none"
+                        style={{ color: "var(--crimson)", opacity: i <= Math.round(val) ? 1 : 0.18 }}
+                      >
+                        ★
+                      </span>
                     );
                   })}
                 </div>

@@ -45,10 +45,10 @@ function MiniStars({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          className="text-[9px]"
-          style={{ opacity: i <= Math.round(rating) ? 1 : 0.2 }}
+          className="text-[10px] leading-none"
+          style={{ color: "var(--crimson)", opacity: i <= Math.round(rating) ? 1 : 0.18 }}
         >
-          ⭐
+          ★
         </span>
       ))}
     </div>
