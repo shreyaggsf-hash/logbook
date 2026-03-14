@@ -4,6 +4,22 @@
   box-sizing: border-box;
 }
 
+:root {
+  --crimson: #6B1A1A;
+  --crimson-faint: #F5EDDF;
+  --crimson-mid: #D4B89A;
+  --bg: #FAF6EE;
+  --surface: #FFFDF8;
+  --text-primary: #1A0E06;
+  --text-secondary: #6B4A2A;
+  --text-muted: #A8886A;
+  --border: #E8DDD0;
+}
+
+.font-playfair {
+  font-family: var(--font-playfair);
+}
+
 @keyframes slide-up {
   from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
@@ -20,4 +36,12 @@
 
 .animate-sheet-slide-up {
   animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* hide scrollbar */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

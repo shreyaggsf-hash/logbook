@@ -16,14 +16,7 @@ import {
 import type { Entry, Category } from "@/types";
 
 const CATEGORIES: Category[] = [
-  "Book",
-  "Movie",
-  "TV Show",
-  "Podcast",
-  "Exhibit",
-  "Event",
-  "Album",
-  "Other",
+  "Book", "Movie", "TV Show", "Podcast", "Exhibit", "Event", "Album", "Other",
 ];
 
 const SEARCHABLE: Category[] = ["Book", "Movie", "TV Show", "Podcast", "Album"];
@@ -93,7 +86,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     date: new Date().toISOString().slice(0, 10),
     notes: "",
     creator: "",
-    tags: "",
   });
   const [ratingWhole, setRatingWhole] = useState("");
   const [ratingDec, setRatingDec] = useState("00");
@@ -110,7 +102,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
   const [showName, setShowName] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const justPickedRef = useRef(false);
-  // Only show autocomplete when the user is actively typing — not on initial form population
   const userTypedRef = useRef(false);
 
   useEffect(() => {
@@ -125,7 +116,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
         date: entry.date ?? "",
         notes: entry.notes,
         creator: entry.creator,
-        tags: entry.tags.join(", "),
       });
     }
   }, [entry]);
@@ -156,7 +146,6 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     }, 600);
   }
 
-  // Debounced suggestion fetch — only runs when user has actively typed
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (form.title.length < 2 || !userTypedRef.current) {
@@ -233,10 +222,7 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
       rating: ratingNum,
       notes: form.notes.trim(),
       creator: form.creator.trim(),
-      tags: form.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: [],
       image: imageUrl || null,
     };
 
@@ -264,46 +250,91 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
     !isEditing && EPISODE_CATEGORIES.includes(form.category) && (showName || form.title);
   const decOptions = ratingWhole === "5" ? ["00"] : DEC_OPTIONS;
 
-  // Shared styles
   const inputCls =
-    "w-full bg-[#EAE6DE] rounded-lg px-3 py-2.5 text-sm text-[#6B1A26] placeholder:text-[#B09898] focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0";
-  const labelCls = "block text-sm font-semibold text-[#6B1A26] mb-1.5";
-  const hintCls = "font-normal text-[#B09898]";
-  const selectCls =
-    "bg-[#EAE6DE] rounded-lg py-2.5 text-sm text-[#6B1A26] text-center focus:outline-none focus:ring-2 focus:ring-[#6B1A26]/25 border-0 appearance-none";
+    "w-full rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none transition-colors"
+  const inputStyle = {
+    background: "var(--surface)",
+    border: "1.5px solid var(--border)",
+    color: "var(--text-primary)",
+  };
+  const labelCls = "block text-[11px] font-semibold uppercase tracking-[0.1em] mb-1.5";
+  const labelStyle = { color: "var(--text-secondary)" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-      <div className="bg-[#F7F2EC] rounded-t-2xl shadow-2xl w-full max-w-sm max-h-[92vh] overflow-y-auto animate-sheet-slide-up">
-        {/* Category icon header — icon only, no switcher */}
-        <div className="flex flex-col items-center pt-5 pb-1">
-          <CategoryIcon size={52} color="#6B1A26" strokeWidth={2} />
-          <span className="mt-1 text-sm font-bold text-[#6B1A26]">{form.category}</span>
+      <div
+        className="flex flex-col w-full max-w-sm rounded-t-3xl shadow-2xl animate-sheet-slide-up"
+        style={{ background: "var(--surface)", maxHeight: "92vh" }}
+      >
+        {/* Drag handle */}
+        <div
+          className="w-9 h-1 rounded-full mx-auto mt-2.5 flex-shrink-0"
+          style={{ background: "var(--border)" }}
+        />
+
+        {/* Sheet header */}
+        <div
+          className="flex items-center justify-between px-6 py-3.5 flex-shrink-0"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0"
+              style={{ background: "var(--crimson)" }}
+            >
+              <CategoryIcon size={14} color="white" strokeWidth={2.2} />
+            </div>
+            <span
+              className="font-playfair text-[19px] font-medium"
+              style={{ color: "var(--crimson)" }}
+            >
+              {form.category}
+            </span>
+          </div>
+          {isEditing && onDelete && !confirmDelete && (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="w-[34px] h-[34px] rounded-[8px] flex items-center justify-center transition-colors"
+              style={{ border: "1.5px solid var(--border)", color: "var(--text-muted)" }}
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-3 space-y-4">
-          {/* Show name lock (episode mode) */}
+        {/* Scrollable form body */}
+        <form
+          id="entry-form"
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto px-6 py-4 space-y-3 scrollbar-none"
+        >
+          {/* Episode mode banner */}
           {isEpisode && showName && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#6B1A26]/10 rounded-lg text-sm">
-              <span className="text-[#6B1A26] font-medium shrink-0">
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
+              style={{ background: "rgba(107,26,26,0.08)" }}
+            >
+              <span className="font-medium shrink-0" style={{ color: "var(--crimson)" }}>
                 {form.category === "Podcast" ? "Podcast" : "Show"}
               </span>
-              <span className="text-[#3D1010] font-semibold truncate">{showName}</span>
+              <span className="font-semibold truncate" style={{ color: "#3D1010" }}>{showName}</span>
               <button
                 type="button"
                 onClick={() => toggleEpisode(false)}
-                className="ml-auto text-[#6B1A26]/50 hover:text-[#6B1A26] shrink-0"
+                className="ml-auto shrink-0"
+                style={{ color: "rgba(107,26,26,0.5)" }}
               >
                 <X size={14} />
               </button>
             </div>
           )}
 
-          {/* Title with autocomplete */}
+          {/* Title */}
           <div className="relative">
-            <label className={labelCls}>
+            <label className={labelCls} style={labelStyle}>
               {isEpisode ? "Episode title" : "Title"}{" "}
-              <span className="text-red-500">*</span>
+              <span style={{ color: "var(--crimson)", fontSize: 14 }}>•</span>
             </label>
             <input
               type="text"
@@ -316,34 +347,37 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
                 if (userTypedRef.current && suggestions.length > 0) setShowSuggestions(true);
               }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              placeholder={
-                isEpisode ? "Search for an episode..." : "e.g. The Autumn Throne..."
-              }
+              placeholder={isEpisode ? "Search for an episode..." : "e.g. The Autumn Throne…"}
               className={inputCls}
+              style={{ ...inputStyle, fontSize: 15 }}
             />
             {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full bg-[#F7F2EC] border border-[#DDD8CF] rounded-lg shadow-lg overflow-y-auto max-h-72">
+              <ul
+                className="absolute z-10 mt-1 w-full rounded-xl shadow-lg overflow-y-auto"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  maxHeight: 288,
+                }}
+              >
                 {suggestions.map((s, i) => (
                   <li key={i}>
                     <button
                       type="button"
                       onMouseDown={() => pickSuggestion(s)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-[#6B1A26]/5 transition-colors flex items-center gap-3"
+                      className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 transition-colors"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       {s.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.image}
-                          alt=""
-                          className="w-10 h-10 object-cover rounded flex-shrink-0"
-                        />
+                        <img src={s.image} alt="" className="w-10 h-10 object-cover rounded flex-shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-[#EAE6DE] flex-shrink-0" />
+                        <div className="w-10 h-10 rounded flex-shrink-0" style={{ background: "var(--border)" }} />
                       )}
                       <div className="min-w-0">
-                        <div className="font-medium text-[#2D1520] truncate">{s.title}</div>
+                        <div className="font-medium truncate">{s.title}</div>
                         {(s.subtitle || s.creator) && (
-                          <div className="text-[#9C8A8E] text-xs truncate">
+                          <div className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
                             {s.subtitle ?? s.creator}
                           </div>
                         )}
@@ -358,20 +392,23 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
           {/* Exhibit URL */}
           {form.category === "Exhibit" && (
             <div>
-              <label className={labelCls}>
+              <label className={labelCls} style={labelStyle}>
                 Exhibition link{" "}
-                <span className={hintCls}>(paste URL to auto-fill image)</span>
+                <span className="normal-case font-normal" style={{ color: "var(--text-muted)" }}>
+                  (paste URL to auto-fill)
+                </span>
               </label>
               <div className="relative">
                 <input
                   type="url"
                   value={exhibitUrl}
                   onChange={(e) => handleExhibitUrlChange(e.target.value)}
-                  placeholder="https://www.metmuseum.org/exhibitions/..."
+                  placeholder="https://…"
                   className={inputCls}
+                  style={inputStyle}
                 />
                 {ogFetching && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9C8A8E]">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--text-muted)" }}>
                     Fetching…
                   </span>
                 )}
@@ -381,138 +418,176 @@ export default function EntryForm({ entry, initialCategory, onSave, onClose, onD
 
           {/* Episode toggle */}
           {canPickEpisode && (
-            <label className="flex items-center gap-2 text-sm text-[#6B1A26] cursor-pointer select-none">
+            <label
+              className="flex items-center gap-2 text-sm cursor-pointer select-none"
+              style={{ color: "var(--crimson)" }}
+            >
               <input
                 type="checkbox"
                 checked={isEpisode}
                 onChange={(e) => toggleEpisode(e.target.checked)}
-                className="rounded border-[#9C8A8E] text-[#6B1A26] focus:ring-[#6B1A26]"
+                className="rounded"
+                style={{ accentColor: "var(--crimson)" }}
               />
               Log a specific episode
             </label>
           )}
 
-          {/* Creator */}
-          <div>
-            <label className={labelCls}>
-              Creator <span className={hintCls}>(author / director / artist)</span>
-            </label>
-            <input
-              type="text"
-              value={form.creator}
-              onChange={(e) => set("creator", e.target.value)}
-              placeholder="e.g. Elizabeth Chadwick"
-              className={inputCls}
-            />
-          </div>
-
-          {/* Date */}
-          <div>
-            <label className={labelCls}>Date Consumed</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => set("date", e.target.value)}
-              className={inputCls}
-            />
+          {/* Creator + Date side-by-side */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className={labelCls} style={labelStyle}>
+                {form.category === "Book" ? "Author" :
+                 form.category === "Movie" || form.category === "TV Show" ? "Director" :
+                 "Creator"}
+              </label>
+              <input
+                type="text"
+                value={form.creator}
+                onChange={(e) => set("creator", e.target.value)}
+                placeholder="e.g. E. Chadwick"
+                className={inputCls}
+                style={{ ...inputStyle, fontSize: 13, padding: "10px 13px" }}
+              />
+            </div>
+            <div>
+              <label className={labelCls} style={labelStyle}>Date</label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => set("date", e.target.value)}
+                className={inputCls}
+                style={{ ...inputStyle, fontSize: 13, padding: "10px 13px" }}
+              />
+            </div>
           </div>
 
           {/* Rating */}
           <div>
-            <label className={labelCls}>Rating (0.25–5)</label>
+            <label className={labelCls} style={labelStyle}>Rating</label>
             <div className="flex items-center gap-2">
-              <select
-                value={ratingWhole}
-                onChange={(e) => {
-                  setRatingWhole(e.target.value);
-                  if (e.target.value === "5") setRatingDec("00");
-                }}
-                className={`${selectCls} w-16`}
-              >
-                <option value="">–</option>
-                {WHOLE_OPTIONS.map((w) => (
-                  <option key={w} value={w}>{w}</option>
-                ))}
-              </select>
-              <span className="text-[#B09898] font-bold text-xl leading-none select-none">·</span>
-              <select
-                value={ratingDec}
-                onChange={(e) => setRatingDec(e.target.value)}
-                disabled={ratingWhole === ""}
-                className={`${selectCls} w-16 disabled:opacity-40`}
-              >
-                {decOptions.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-              <span className="text-lg leading-none select-none">⭐</span>
+              <div className="relative">
+                <select
+                  value={ratingWhole}
+                  onChange={(e) => {
+                    setRatingWhole(e.target.value);
+                    if (e.target.value === "5") setRatingDec("00");
+                  }}
+                  className="appearance-none w-[72px] rounded-xl py-2.5 pl-3.5 pr-7 text-[18px] font-medium focus:outline-none"
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    background: "var(--surface)",
+                    border: ratingWhole ? "1.5px solid var(--crimson)" : "1.5px solid var(--border)",
+                    color: "var(--crimson)",
+                  }}
+                >
+                  <option value="">–</option>
+                  {WHOLE_OPTIONS.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px]" style={{ color: "var(--crimson)" }}>▾</span>
+              </div>
+              <span className="text-[20px] font-light select-none" style={{ color: "var(--text-muted)" }}>.</span>
+              <div className="relative">
+                <select
+                  value={ratingDec}
+                  onChange={(e) => setRatingDec(e.target.value)}
+                  disabled={ratingWhole === ""}
+                  className="appearance-none w-[80px] rounded-xl py-2.5 pl-3.5 pr-7 text-[18px] font-medium focus:outline-none disabled:opacity-40"
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    background: "var(--surface)",
+                    border: ratingWhole ? "1.5px solid var(--crimson)" : "1.5px solid var(--border)",
+                    color: "var(--crimson)",
+                  }}
+                >
+                  {decOptions.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px]" style={{ color: "var(--crimson)" }}>▾</span>
+              </div>
+              {ratingWhole !== "" && (
+                <div className="flex gap-0.5 ml-1">
+                  {[1,2,3,4,5].map((i) => {
+                    const val = parseFloat(`${ratingWhole}.${ratingDec}`);
+                    return (
+                      <span key={i} style={{ fontSize: 14, opacity: i <= Math.round(val) ? 1 : 0.2 }}>⭐</span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className={labelCls}>Notes</label>
+            <label className={labelCls} style={labelStyle}>Notes</label>
             <textarea
               value={form.notes}
               onChange={(e) => set("notes", e.target.value)}
-              rows={3}
-              placeholder="Thoughts, quotes, recommendations..."
-              className={`${inputCls} resize-none`}
+              rows={4}
+              placeholder="Thoughts, quotes, recommendations…"
+              className="w-full rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none resize-none scrollbar-none"
+              style={{ ...inputStyle, lineHeight: 1.6 }}
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>
+          )}
+        </form>
 
-          <div className="flex justify-between items-center pt-1">
-            {isEditing && onDelete ? (
-              confirmDelete ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onDelete(entry!.id)}
-                    className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(false)}
-                    className="text-xs text-[#9C8A8E] hover:text-[#2D1520]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(true)}
-                  className="p-2 bg-[#EAE6DE] text-[#6B1A26] hover:bg-[#DDD8CF] rounded-lg transition-colors"
-                  title="Delete entry"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-3 items-center">
+        {/* Footer */}
+        <div
+          className="flex gap-2.5 px-6 pb-8 pt-3 flex-shrink-0"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          {confirmDelete ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 h-[46px] rounded-xl text-[13px] font-medium transition-colors"
+                style={{ border: "1.5px solid var(--border)", color: "var(--text-secondary)" }}
+              >
+                Keep
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete!(entry!.id)}
+                className="flex-[2] h-[46px] rounded-xl text-[13px] font-semibold text-white"
+                style={{ background: "#DC2626" }}
+              >
+                Delete entry
+              </button>
+            </>
+          ) : (
+            <>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-[#6B1A26] hover:text-[#2D1520] transition-colors"
+                className="flex-1 h-[46px] rounded-xl text-[13px] font-medium transition-colors"
+                style={{ border: "1.5px solid var(--border)", color: "var(--text-secondary)" }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
+                form="entry-form"
                 disabled={saving}
-                className="px-5 py-2 bg-[#6B1A26] text-white text-sm font-medium rounded-lg hover:bg-[#5A1520] disabled:opacity-50 transition-colors"
+                className="flex-[2] h-[46px] rounded-xl text-[13px] font-semibold text-white disabled:opacity-50 transition-opacity"
+                style={{
+                  background: "var(--crimson)",
+                  boxShadow: "0 4px 14px rgba(107,26,26,0.35)",
+                }}
               >
-                {saving ? "Saving..." : "Save"}
+                {saving ? "Saving…" : "Save Entry"}
               </button>
-            </div>
-          </div>
-        </form>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
