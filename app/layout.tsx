@@ -12,6 +12,12 @@ const lora = Lora({
 export const metadata: Metadata = {
   title: "Culture Logbook",
   description: "Track the books, films, shows, podcasts and events you consume.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Logbook",
+  },
 };
 
 export default function RootLayout({
