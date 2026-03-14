@@ -569,7 +569,7 @@ export default function HomePage() {
       {/* ── FAB ── */}
       <button
         onClick={() => setShowTypePicker((v) => !v)}
-        className="fixed bottom-[56px] left-1/2 -translate-x-1/2 w-[52px] h-[52px] rounded-full flex items-center justify-center active:scale-95 transition-transform z-50"
+        className="fixed bottom-[15px] left-1/2 -translate-x-1/2 w-[52px] h-[52px] rounded-full flex items-center justify-center active:scale-95 transition-transform z-50"
         style={{
           background: "var(--crimson)",
           boxShadow: "0 4px 16px rgba(107,26,26,0.4)",
