@@ -118,6 +118,12 @@ function DrillDownSheet({
   onClose: () => void;
   onEdit: (e: Entry) => void;
 }) {
+  const [sort, setSort] = useState<"date" | "rating">("date");
+  const sorted = [...entries].sort((a, b) => {
+    if (sort === "rating") return (b.rating ?? -1) - (a.rating ?? -1);
+    return (b.date ?? "").localeCompare(a.date ?? "");
+  });
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -150,31 +156,32 @@ function DrillDownSheet({
                 </div>
               </div>
             </div>
-            {/* Sort pill (static display) */}
-            <div
-              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-medium"
+            {/* Sort pill */}
+            <button
+              onClick={() => setSort((s) => s === "date" ? "rating" : "date")}
+              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors active:scale-95"
               style={{ background: "var(--bg)", border: "1.5px solid var(--border)", color: "var(--text-secondary)" }}
             >
               <AlignJustify size={12} strokeWidth={2.2} />
-              Date
-            </div>
+              {sort === "date" ? "Date" : "Rating"}
+            </button>
           </div>
           <div className="h-px mt-3.5" style={{ background: "var(--border)" }} />
         </div>
 
         {/* Scrollable list */}
         <div className="flex-1 overflow-y-auto scrollbar-none px-6 pb-8">
-          {entries.length === 0 ? (
+          {sorted.length === 0 ? (
             <p className="text-center py-12 text-sm" style={{ color: "var(--text-muted)" }}>
               Nothing logged yet.
             </p>
           ) : (
-            entries.map((entry, i) => (
+            sorted.map((entry, i) => (
               <button
                 key={entry.id}
                 onClick={() => onEdit(entry)}
                 className="w-full flex items-center gap-3 py-3 text-left active:bg-[#F5EDDF] transition-colors"
-                style={{ borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none" }}
+                style={{ borderBottom: i < sorted.length - 1 ? "1px solid var(--border)" : "none" }}
               >
                 {/* mini thumbnail */}
                 <div
@@ -386,7 +393,7 @@ export default function HomePage() {
     <>
       {/* ── Header: year + period picker + sync ── */}
       <div className="flex items-center justify-between mb-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-end gap-2">
           {/* Year picker */}
           <div className="relative inline-flex items-center gap-1.5">
             <span
